@@ -1,0 +1,96 @@
+:root {
+  color-scheme: dark;
+
+  /* ==========================================================================
+     Luminous Celestial 3D Design Tokens
+     Ultra-rich, vibrant, best-in-class cosmic color combinations & depth
+     ========================================================================== */
+  
+  /* Primary Canvases & Depths */
+  --color-bg: #050716;                /* Deep Space Obsidian: Rich, immersive void */
+  --color-bg-secondary: #0A0F2D;      /* Midnight Astral Horizon */
+  --color-surface: rgba(14, 20, 52, 0.75); /* Translucent Cosmic Glass */
+  --color-surface-elevated: rgba(24, 32, 78, 0.85); /* Elevated Holographic Surface */
+  --color-surface-card: rgba(16, 24, 60, 0.65);
+  
+  /* Vibrant Solar Golds (Primary CTAs & Key Accents) */
+  --color-primary: #FFD700;           /* Radiant Solar Gold */
+  --color-primary-light: #FFE873;     /* Starlight Gold Flare */
+  --color-primary-dark: #D4A017;      /* Burnished Antique Gold */
+  --color-on-primary: #070914;        /* Deep Void for high contrast text on gold */
+
+  /* Electric Mystical Accents */
+  --color-accent: #8B5CF6;            /* Electric Violet */
+  --color-accent-light: #C084FC;      /* Ethereal Lavender Glow */
+  --color-accent-dark: #6D28D9;       /* Deep Cosmic Purple */
+  --color-cyan: #06B6D4;              /* Astral Starlight Cyan */
+  --color-cyan-light: #38BDF8;        /* Neon Starlight Cyan */
+
+  /* Elemental Color Profiles */
+  --color-fire: #FF5733;              /* Solar Fire */
+  --color-earth: #10B981;             /* Celestial Emerald Earth */
+  --color-air: #06B6D4;               /* Ethereal Breeze */
+  --color-water: #6366F1;             /* Deep Astral Water */
+
+  /* Text & Readability (Sharp, brilliant, accessible) */
+  --color-text: #F8FAFC;              /* Brilliant Starlight Ivory */
+  --color-text-secondary: #E2E8F0;    /* Silver Moonlight */
+  --color-text-muted: #94A3B8;        /* Soft Cosmic Dust */
+  
+  /* Glass Borders & Chromatic Outlines */
+  --color-border: rgba(148, 163, 184, 0.2);
+  --color-border-glow: rgba(255, 215, 0, 0.45);
+  --color-border-violet: rgba(139, 92, 246, 0.45);
+  --color-border-cyan: rgba(6, 182, 212, 0.45);
+
+  /* Feedback Colors */
+  --color-success: #10B981;           /* Emerald Celestial Sage */
+  --color-warning: #F59E0B;           /* Radiant Solar Amber */
+  --color-danger: #F43F5E;            /* Supernova Rose */
+
+  /* Dynamic Holographic & Cosmic Gradients */
+  --grad-gold: linear-gradient(135deg, #FFF9D2 0%, #FFD700 45%, #F59E0B 80%, #D4A017 100%);
+  --grad-violet-cyan: linear-gradient(135deg, #8B5CF6 0%, #6366F1 50%, #06B6D4 100%);
+  --grad-holographic: linear-gradient(135deg, rgba(255, 215, 0, 0.35) 0%, rgba(139, 92, 246, 0.3) 50%, rgba(6, 182, 212, 0.35) 100%);
+  --grad-card: linear-gradient(145deg, rgba(24, 32, 78, 0.8) 0%, rgba(10, 15, 45, 0.9) 100%);
+  --grad-hero: radial-gradient(circle at 50% 20%, rgba(30, 42, 105, 0.6) 0%, rgba(10, 15, 45, 0.95) 60%, #050716 100%);
+
+  /* 3D Shadows & Volumetric Glows */
+  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
+  --shadow-card: 0 16px 40px -10px rgba(0, 0, 0, 0.6), 0 0 20px rgba(139, 92, 246, 0.15);
+  --shadow-elevated: 0 24px 60px -12px rgba(0, 0, 0, 0.75), 0 0 35px rgba(255, 215, 0, 0.2);
+  --shadow-gold: 0 0 25px rgba(255, 215, 0, 0.45), 0 4px 20px rgba(245, 158, 11, 0.3);
+  --shadow-violet: 0 0 30px rgba(139, 92, 246, 0.5), 0 4px 25px rgba(99, 102, 241, 0.35);
+  --shadow-cyan: 0 0 25px rgba(6, 182, 212, 0.45);
+
+  /* Typography */
+  --font-display: 'Cinzel', 'Cormorant Garamond', Georgia, serif;
+  --font-heading: 'Cormorant Garamond', Georgia, serif;
+  --font-body: 'Plus Jakarta Sans', Inter, system-ui, -apple-system, sans-serif;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+  --space-2xl: 48px;
+  --space-3xl: 64px;
+
+  /* Border Radii */
+  --radius-xs: 6px;
+  --radius-sm: 10px;
+  --radius-md: 18px;
+  --radius-lg: 26px;
+  --radius-full: 9999px;
+
+  /* Layout */
+  --content-max-width: 1240px;
+  --header-height: 80px;
+
+  /* Animation Timings */
+  --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --transition-fast: 180ms ease;
+  --transition-normal: 300ms cubic-bezier(0.16, 1, 0.3, 1);
+  --transition-slow: 600ms cubic-bezier(0.16, 1, 0.3, 1);
+}

@@ -1,0 +1,19 @@
+{
+  "name": "mystical-past-life-astrology",
+  "version": "1.0.0",
+  "description": "Mystical Past-Life Astrology — Complete Production-Ready Application",
+  "scripts": {
+    "install:all": "npm --prefix \"Time Machine Backend\" install && npm --prefix \"Time Machine Frontend\" install",
+    "dev:backend": "npm --prefix \"Time Machine Backend\" run dev",
+    "dev:frontend": "npm --prefix \"Time Machine Frontend\" run dev",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "build:frontend": "npm --prefix \"Time Machine Frontend\" run build",
+    "build": "npm run build:frontend",
+    "test:backend": "npm --prefix \"Time Machine Backend\" test",
+    "test:frontend": "npm --prefix \"Time Machine Frontend\" test",
+    "test": "npm run test:backend && npm run test:frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.0"
+  }
+}

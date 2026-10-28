@@ -1,0 +1,104 @@
+import fs from 'fs';
+import path from 'path';
+import { StorageService } from '../services/storage.service.js';
+
+export async function uploadReferencePhoto(req, res, next) {
+  try {
+    const photoConsent = req.body.photoConsent === true || req.body.photoConsent === 'true';
+    if (!photoConsent) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'CONSENT_REQUIRED',
+          message: 'Explicit user consent is required to process a reference photograph for portrait generation.',
+        },
+        requestId: req.id,
+      });
+    }
+
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({
+        success: false,
+        error: {
+          code: 'VALIDATION_ERROR',
+          message: 'No photograph file was attached to the celestial transmission.',
+        },
+        requestId: req.id,
+      });
+    }
+
+    const saved = await StorageService.saveReferencePhoto(
+      req.file.buffer,
+      req.file.originalname,
+      req.file.mimetype
+    );
+
+    res.status(201).json({
+      success: true,
+      data: {
+        assetId: saved.assetId,
+        message: 'Reference photograph securely received. It will be used solely for visual identity styling.',
+      },
+      requestId: req.id,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function deleteReferencePhoto(req, res, next) {
+  try {
+    const assetId = req.params.assetId;
+    const deleted = await StorageService.deleteReferencePhoto(assetId);
+
+    if (!deleted) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'Reference photo asset not found or already deleted.',
+        },
+        requestId: req.id,
+      });
+    }
+
+    res.status(200).json({
+      success: true,
+      data: {
+        assetId,
+        deleted: true,
+        message: 'Reference photograph has been permanently removed.',
+      },
+      requestId: req.id,
+    });
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function servePortrait(req, res, next) {
+  try {
+    const assetId = req.params.assetId;
+    const filePath = StorageService.getPortraitPath(assetId);
+
+    if (!filePath || !fs.existsSync(filePath)) {
+      return res.status(404).json({
+        success: false,
+        error: {
+          code: 'NOT_FOUND',
+          message: 'The requested portrait asset was not found.',
+        },
+        requestId: req.id,
+      });
+    }
+
+    const ext = path.extname(filePath).toLowerCase();
+    const contentType = ext === '.svg' ? 'image/svg+xml' : ext === '.jpg' || ext === '.jpeg' ? 'image/jpeg' : 'image/png';
+
+    res.setHeader('Content-Type', contentType);
+    res.setHeader('Cache-Control', 'private, max-age=86400');
+    fs.createReadStream(filePath).pipe(res);
+  } catch (error) {
+    next(error);
+  }
+}
