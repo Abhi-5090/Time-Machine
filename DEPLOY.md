@@ -1,5 +1,13 @@
 # Deploying Time Machine
 
+**Live**
+
+| | |
+| --- | --- |
+| Site | https://time-machine-frontend.vercel.app |
+| API  | https://time-machine-jxw0.onrender.com |
+
+
 Two services: the API on **Render**, the site on **Vercel**. The database is your
 existing **MongoDB Atlas** cluster.
 
@@ -110,6 +118,11 @@ health URL once to wake it. For an expo, the paid instance type is worth it.
 
 **Generation takes 35–60 seconds.** That is normal for this image model. The reveal
 screen polls and narrates real server stages throughout.
+
+**Portraits are requested as WebP.** The same image as PNG is ~2.4 MB and took nine
+seconds to reach a browser from the free instance — an empty frame on the screen the
+whole reading builds toward. `OPENAI_IMAGE_FORMAT=png` restores lossless output if
+you ever need it.
 
 **Atlas IP allow-list.** If the API logs a connection timeout, this is why.
 

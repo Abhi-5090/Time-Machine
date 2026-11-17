@@ -1,5 +1,7 @@
 # Time Machine
 
+**[Open it →](https://time-machine-frontend.vercel.app)**
+
 Two doors. One takes you back; one takes you to 2050.
 
 **Time Machine** writes you an imaginative, astrology-inspired chronicle of a life you might have
