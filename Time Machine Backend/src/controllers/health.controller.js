@@ -8,6 +8,8 @@ export function getHealth(req, res) {
     data: {
       status: 'ok',
       database: isDbConnected() ? 'connected' : 'disconnected',
+      // 'local' on a hosted instance means portraits are lost on every deploy.
+      storage: config.STORAGE_PROVIDER,
       providerMode: config.AI_PROVIDER_MODE,
       textModel: config.OPENAI_TEXT_MODEL,
       imageModel: config.OPENAI_IMAGE_MODEL,

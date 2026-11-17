@@ -4,7 +4,7 @@
     {
       "comment": "Proxy the API through this origin so the browser never makes a cross-origin call. Replace the host with your Render URL.",
       "source": "/api/:path*",
-      "destination": "https://time-machine-api.onrender.com/api/:path*"
+      "destination": "https://time-machine-jxw0.onrender.com/api/:path*"
     },
     {
       "comment": "Client-side routing: every other path serves the app shell.",
