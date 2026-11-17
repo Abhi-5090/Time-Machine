@@ -200,7 +200,8 @@ export class ReadingService {
     const token = ownerToken || uuidv4();
     const jobId = `job_${uuidv4()}`;
     const { providerMode, degradedReason } = getProviders();
-    const [firstStage] = getStages(timeline);
+    const hasReferencePhoto = Boolean(profile.photoAssetId && consent.photoProcessing);
+    const [firstStage] = getStages(timeline, { withPortrait: hasReferencePhoto });
 
     const reading = new Reading({
       readingId,
@@ -215,7 +216,7 @@ export class ReadingService {
         dateOfBirth: isoDay(profile.dateOfBirth),
         birthTime: profile.birthTime || '',
         birthplace: profile.birthplace || '',
-        hasReferencePhoto: Boolean(profile.photoAssetId && consent.photoProcessing),
+        hasReferencePhoto,
       },
       status: 'processing',
       currentStage: firstStage.id,
@@ -263,13 +264,18 @@ export class ReadingService {
       timeline,
       status: 'processing',
       currentStage: firstStage.id,
+      // The caller needs this to send back the same stage list this job will
+      // actually walk through.
+      hasReferencePhoto,
       jobId,
     };
   }
 
   /** Advances the stored stage so pollers see live progress. */
   static async advance(reading, stageId, timeline) {
-    const stage = getStages(timeline).find((s) => s.id === stageId);
+    const stage = getStages(timeline, {
+      withPortrait: Boolean(reading.profileSummary?.hasReferencePhoto),
+    }).find((s) => s.id === stageId);
     reading.currentStage = stageId;
     reading.stageProgressPercent = stage ? stage.progress : reading.stageProgressPercent;
     await reading.save();
@@ -359,6 +365,12 @@ export class ReadingService {
     reading.disclaimer = story.disclaimer || PromptService.PAST_DISCLAIMER;
     await reading.save();
 
+    // No photograph, no portrait. Generating a face for someone who did not
+    // give us one costs an image call and produces a stranger: the reader
+    // looks at it and sees nobody they recognise. The card prints a drawn
+    // stand-in instead, which is honest and free.
+    if (!referenceAssetId) return;
+
     await this.advance(reading, 'creating_portrait', 'past');
     const portrait = await imageProvider.generatePortrait(characterProfile, preferences, referenceAssetId);
     reading.portraitAssetId = portrait.assetId;
@@ -406,6 +418,9 @@ export class ReadingService {
     reading.disclaimer = chronicle.disclaimer || PromptService.FUTURE_DISCLAIMER;
     await reading.save();
 
+    // See #generatePast: without a photograph there is nothing to age to 2050.
+    if (!referenceAssetId) return;
+
     await this.advance(reading, 'rendering_portrait', 'future');
     const portrait = await imageProvider.generateFuturePortrait(futureProfile, preferences, referenceAssetId);
     reading.portraitAssetId = portrait.assetId;
@@ -424,6 +439,16 @@ export class ReadingService {
   static async retryGeneration(readingId) {
     const reading = await Reading.findOne({ readingId });
     if (!reading) throw appError('Reading not found.', 'READING_NOT_FOUND', 404);
+
+    // There is nothing to redo: this reading never drew a picture, because the
+    // reader did not share a photograph for it to be drawn from.
+    if (!reading.profileSummary?.hasReferencePhoto) {
+      throw appError(
+        'This card has no picture to make again. Add a photo and start a new card.',
+        'NO_REFERENCE_PHOTO',
+        400
+      );
+    }
 
     if (reading.retryCount >= MAX_RETRIES) {
       throw appError(

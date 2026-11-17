@@ -126,6 +126,13 @@
   margin-top: 32px;
 }
 
+.sheet-portrait-col {
+  display: flex;
+  flex-direction: column;
+  gap: 11px;
+  margin: 0;
+}
+
 .sheet-portrait {
   width: 290px;
   height: 386px;
@@ -144,16 +151,25 @@
   object-fit: cover;
 }
 
-.sheet-portrait__empty {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 10px;
+/* The drawn stand-in, shown when no photograph was given. Its whole palette
+   is currentColor at various opacities, so this one declaration tints it — and
+   a computed `color` is something html-to-image can carry into the export,
+   where a var() inside a fill attribute would be lost. */
+.sheet-portrait__stand-in {
+  display: block;
   width: 100%;
   height: 100%;
   color: var(--ink-muted);
-  font-size: 13px;
+}
+
+[data-timeline='future'] .sheet-portrait__stand-in {
+  color: var(--accent);
+}
+
+.sheet-portrait__note {
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: var(--ink-muted);
 }
 
 [data-timeline='future'] .sheet-portrait {

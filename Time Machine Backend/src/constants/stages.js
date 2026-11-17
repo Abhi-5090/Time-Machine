@@ -64,6 +64,27 @@ export const STAGES_BY_TIMELINE = {
   future: FUTURE_STAGES,
 };
 
-export function getStages(timeline) {
-  return STAGES_BY_TIMELINE[timeline] || PAST_STAGES;
+/** The one stage per timeline that calls the image provider. */
+export const PORTRAIT_STAGE_IDS = new Set(['creating_portrait', 'rendering_portrait']);
+
+const PORTRAIT_PROGRESS = 90;
+
+/**
+ * The stages a given reading will actually run through.
+ *
+ * A reading only draws a picture when the reader shared a photograph to draw
+ * from. Without one there is no portrait step at all, so it is dropped from
+ * the list rather than shown and silently skipped — the reveal screen renders
+ * this list verbatim, and a step that never happens should never be promised.
+ * The last remaining stage inherits the portrait stage's progress so the bar
+ * still fills to the same place before the reading completes.
+ */
+export function getStages(timeline, { withPortrait = true } = {}) {
+  const stages = STAGES_BY_TIMELINE[timeline] || PAST_STAGES;
+  if (withPortrait) return stages;
+
+  const kept = stages.filter((stage) => !PORTRAIT_STAGE_IDS.has(stage.id));
+  return kept.map((stage, index) =>
+    index === kept.length - 1 ? { ...stage, progress: PORTRAIT_PROGRESS } : stage
+  );
 }

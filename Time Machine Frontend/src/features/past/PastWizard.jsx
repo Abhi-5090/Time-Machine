@@ -132,7 +132,7 @@ export default function PastWizard() {
         label: 'Your photo',
         title: 'Add your photo',
         description:
-          'Your photo helps us draw a face that looks like yours. You can skip it and still get your card.',
+          'Your photo is what your picture gets drawn from. Skip it and your card comes with a drawn stand-in in place of a picture.',
         validate: (answers) =>
           !answers.consentFiction || !answers.consentReading
             ? 'Please tick both boxes before we start.'
@@ -144,7 +144,7 @@ export default function PastWizard() {
               set={set}
               copy={{
                 skipNote:
-                  'No photo is fine. We will draw a face for you instead, and your card will look just as good.',
+                  'You can skip this. Without a photo we do not make a picture, so your card shows a drawn stand-in instead. Everything else on it is the same.',
               }}
             />
 

@@ -965,3 +965,13 @@ select.input {
   margin-top: 2px;
   color: var(--color-caution);
 }
+
+/* The drawn stand-in that fills a frame when no photograph was shared. It is
+   painted entirely in currentColor, so this is the only declaration it needs. */
+.portrait-stand-in {
+  color: var(--ink-muted);
+}
+
+[data-timeline='future'] .portrait-stand-in {
+  color: var(--accent);
+}

@@ -77,7 +77,7 @@ export function FutureReport({ reading }) {
             caption={
               reading.profileSummary?.hasReferencePhoto
                 ? 'Resolved from the photograph you shared, restaged in 2050.'
-                : 'A resolved likeness. No photograph was used.'
+                : 'You did not share a photo, so no picture was made. This is a stand-in.'
             }
           />
 

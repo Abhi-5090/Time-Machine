@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { LottieIcon } from '../../lottie/LottieIcon';
 import { EASE_OUT, EASE_IN_OUT, DURATION } from '../../motion/easings';
 import { Icon } from '../ui/Icon';
+import { PortraitPlaceholder } from './PortraitPlaceholder';
 
 /**
  * The generated portrait.
@@ -73,6 +74,16 @@ export function PortraitFrame({ src, alt, timeline = 'past', caption, eyebrow, r
             </motion.div>
           ) : null}
         </AnimatePresence>
+
+        {/* Nothing was generated, because no photograph was shared. The frame
+            shows the drawn stand-in rather than sitting empty. */}
+        {state === 'empty' ? (
+          <PortraitPlaceholder
+            timeline={timeline}
+            className="portrait-stand-in"
+            style={{ position: 'absolute', inset: 0, width: '100%', height: '100%' }}
+          />
+        ) : null}
 
         {state === 'error' ? (
           <div

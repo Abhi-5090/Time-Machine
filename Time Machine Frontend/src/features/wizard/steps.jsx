@@ -171,7 +171,7 @@ export function PhotoStep({ answers, set, copy }) {
             style={{ color: 'var(--ink-muted)', fontSize: '0.9rem' }}
           >
             {copy?.skipNote ||
-              'No photo is fine. We will draw a face for you instead, and your card will look just as good.'}
+              'You can skip this. Without a photo we do not make a picture, so your card shows a drawn stand-in instead. Everything else on it is the same.'}
           </motion.p>
         )}
       </AnimatePresence>

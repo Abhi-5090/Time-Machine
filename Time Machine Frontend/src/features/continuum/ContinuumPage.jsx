@@ -8,8 +8,9 @@ import { Reveal } from '../../motion/Reveal';
 import { useReading } from '../../lib/useReading';
 import { getContinuumPair } from '../../lib/archive';
 import { EASE_OUT, DURATION } from '../../motion/easings';
-import './continuum.css';
 import { Icon } from '../../components/ui/Icon';
+import { PortraitPlaceholder } from '../../components/reading/PortraitPlaceholder';
+import './continuum.css';
 
 /**
  * The Continuum.
@@ -72,7 +73,9 @@ function Panel({ timeline, reading, loading, fallbackHref, fallbackLabel }) {
       <div className="continuum-portrait">
         {reading.portraitUrl ? (
           <img src={reading.portraitUrl} alt={`Portrait of ${name || 'the subject'}`} loading="lazy" />
-        ) : null}
+        ) : (
+          <PortraitPlaceholder timeline={timeline} className="portrait-stand-in" />
+        )}
       </div>
 
       <p className="eyebrow" style={{ marginTop: 'var(--space-5)' }}>

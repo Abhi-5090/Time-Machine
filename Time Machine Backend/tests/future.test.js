@@ -83,7 +83,7 @@ describe('2050 reading workflow', () => {
     await disconnectDatabase();
   });
 
-  it('creates a future reading without a star sign and completes with a chronicle and portrait', async () => {
+  it('creates a future reading without a star sign and completes with a chronicle', async () => {
     const createRes = await request(app)
       .post('/api/v1/readings')
       .send({
@@ -117,8 +117,10 @@ describe('2050 reading workflow', () => {
     expect(reading.storySections).toBeUndefined();
     expect(reading.symbolicKarmicThemes).toBeUndefined();
 
-    const portraitRes = await request(app).get(reading.portraitUrl);
-    expect(portraitRes.status).toBe(200);
+    // No photograph was shared, so 2050 has a story but no face: there was
+    // nothing to age forty-five years, and the card draws a stand-in instead.
+    expect(reading.portraitUrl).toBeNull();
+    expect(reading.stages.map((stage) => stage.id)).not.toContain('rendering_portrait');
 
     await request(app).delete(`/api/v1/readings/${readingId}`).set('X-Reading-Token', ownerToken);
   });

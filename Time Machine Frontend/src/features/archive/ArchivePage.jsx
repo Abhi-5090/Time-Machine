@@ -11,6 +11,7 @@ import { getArchive, subscribeToArchive, forgetReading, clearArchive } from '../
 import { api } from '../../lib/api';
 import { EASE_OUT, DURATION } from '../../motion/easings';
 import { Icon } from '../../components/ui/Icon';
+import { PortraitPlaceholder } from '../../components/reading/PortraitPlaceholder';
 
 const FILTERS = [
   { id: 'all', label: 'Everything' },
@@ -213,6 +214,15 @@ export default function ArchivePage() {
                         alt=""
                         loading="lazy"
                         style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                      />
+                    ) : entry.status === 'completed' ? (
+                      // Finished, but no photo was shared, so no picture was
+                      // ever made. The lottie below means "still working", and
+                      // would read as a card stuck in progress forever.
+                      <PortraitPlaceholder
+                        timeline={entry.timeline}
+                        className="portrait-stand-in"
+                        style={{ width: '100%', height: '100%' }}
                       />
                     ) : (
                       <LottieIcon

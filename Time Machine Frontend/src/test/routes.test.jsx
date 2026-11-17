@@ -146,6 +146,40 @@ describe('Results', () => {
     await waitFor(() => expect(document.documentElement.getAttribute('data-timeline')).toBe('future'));
   });
 
+  it('shows the drawn stand-in, and says so, when no photo was shared', async () => {
+    renderRoute('/reading/rd_nophoto');
+
+    await screen.findByText('Your Past Life Report');
+
+    // No <img> on the card at all — nothing was generated to put there.
+    expect(screen.queryByAltText(/^Portrait of/)).not.toBeInTheDocument();
+    expect(
+      screen.getByLabelText('A drawn stand-in, shown because no photo was shared')
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText('No photo was shared, so this picture is a stand-in.')
+    ).toBeInTheDocument();
+
+    // Nothing was drawn, so neither picture action is offered.
+    expect(screen.queryByRole('button', { name: /Just the picture/ })).not.toBeInTheDocument();
+    expect(screen.queryByRole('button', { name: /Redo the picture/ })).not.toBeInTheDocument();
+
+    // The card itself is unchanged in every other respect.
+    expect(screen.getByText('31 October 1996')).toBeInTheDocument();
+    expect(screen.getByText('Who you were')).toBeInTheDocument();
+  });
+
+  it('still shows the generated picture when a photo was shared', async () => {
+    renderRoute('/reading/rd_past');
+
+    await screen.findByText('Your Past Life Report');
+    expect(screen.getByAltText('Portrait of Aria')).toBeInTheDocument();
+    expect(
+      screen.queryByText('No photo was shared, so this picture is a stand-in.')
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /Just the picture/ })).toBeInTheDocument();
+  });
+
   it('explains a reading that is gone instead of failing silently', async () => {
     renderRoute('/reading/rd_missing');
     expect(await screen.findByText('We could not find that card')).toBeInTheDocument();

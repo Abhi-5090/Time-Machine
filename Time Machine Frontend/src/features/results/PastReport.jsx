@@ -54,7 +54,7 @@ export function PastReport({ reading }) {
             caption={
               reading.profileSummary?.hasReferencePhoto
                 ? 'Painted from the photograph you shared, restaged in the era of the chronicle.'
-                : 'An imagined likeness. No photograph was used.'
+                : 'You did not share a photo, so no picture was made. This is a stand-in.'
             }
           />
 

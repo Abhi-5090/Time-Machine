@@ -109,17 +109,22 @@ export function ActionBar({ reading, sheetRef, title }) {
 
         {reading.isOwner ? (
           <>
-            <Button
-              variant="ghost"
-              size="sm"
-              loading={pending === 'retry'}
-              icon={<Icon name="retry" size={14} />}
-              onClick={() =>
-                run('retry', () => api.retryReading(reading.readingId), 'Making a new picture for you.')
-              }
-            >
-              Redo the picture
-            </Button>
+            {/* Only offered when there is a picture to make again. Without a
+                photo none was ever drawn, so the server refuses the retry and
+                a button that always errors is worse than no button. */}
+            {reading.portraitUrl ? (
+              <Button
+                variant="ghost"
+                size="sm"
+                loading={pending === 'retry'}
+                icon={<Icon name="retry" size={14} />}
+                onClick={() =>
+                  run('retry', () => api.retryReading(reading.readingId), 'Making a new picture for you.')
+                }
+              >
+                Redo the picture
+              </Button>
+            ) : null}
 
             <Button
               variant="danger"

@@ -112,7 +112,7 @@ export const PAST_READING = {
       dateOfBirth: '1996-10-31',
       birthTime: '14:05',
       birthplace: 'Hyderabad, India',
-      hasReferencePhoto: false,
+      hasReferencePhoto: true,
     },
     characterProfile: {
       characterName: 'Lysander of the Whispering Spire',
@@ -165,7 +165,7 @@ export const FUTURE_READING = {
       dateOfBirth: '1996-10-31',
       birthTime: '14:05',
       birthplace: 'Hyderabad, India',
-      hasReferencePhoto: false,
+      hasReferencePhoto: true,
     },
     futureProfile: {
       targetYear: 2050,
@@ -207,6 +207,22 @@ export const FUTURE_READING = {
 };
 
 /** Routes a mocked fetch to the right fixture. */
+/**
+ * The other half of the rule: a finished reading for someone who shared no
+ * photograph, so no picture was ever drawn and the card falls back to the
+ * stand-in. The portrait stage is absent from `stages` for the same reason.
+ */
+export const PAST_READING_NO_PHOTO = {
+  success: true,
+  data: {
+    ...PAST_READING.data,
+    readingId: 'rd_nophoto',
+    portraitUrl: null,
+    stages: CATALOG.data.past.stages.filter((stage) => stage.id !== 'creating_portrait'),
+    profileSummary: { ...PAST_READING.data.profileSummary, hasReferencePhoto: false },
+  },
+};
+
 export function mockFetch(overrides = {}) {
   return async (input) => {
     const url = typeof input === 'string' ? input : input.url;
@@ -220,6 +236,7 @@ export function mockFetch(overrides = {}) {
 
     if (overrides[url]) return respond(overrides[url]);
     if (url.includes('/catalog')) return respond(CATALOG);
+    if (url.includes('/readings/rd_nophoto')) return respond(PAST_READING_NO_PHOTO);
     if (url.includes('/readings/rd_past')) return respond(PAST_READING);
     if (url.includes('/readings/rd_future')) return respond(FUTURE_READING);
     if (url.includes('/readings/rd_missing')) {

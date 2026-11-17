@@ -1,5 +1,6 @@
 import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Icon } from '../../components/ui/Icon';
+import { PortraitPlaceholder } from '../../components/reading/PortraitPlaceholder';
 import { textGlyph } from '../../lib/glyph';
 import './reportCard.css';
 
@@ -183,14 +184,24 @@ export const ReportCard = React.forwardRef(function ReportCard({ reading }, shee
         <div className="sheet-rule" aria-hidden="true" />
 
         <section className="sheet-body">
-          <figure className="sheet-portrait">
-            {reading.portraitUrl ? (
-              <img src={reading.portraitUrl} alt={`Portrait of ${name}`} />
-            ) : (
-              <div className="sheet-portrait__empty">
-                <Icon name="portrait" size={34} />
-                <span>No picture</span>
-              </div>
+          <figure className="sheet-portrait-col">
+            <div className="sheet-portrait">
+              {reading.portraitUrl ? (
+                <img src={reading.portraitUrl} alt={`Portrait of ${name}`} />
+              ) : (
+                <PortraitPlaceholder
+                  timeline={isFuture ? 'future' : 'past'}
+                  className="sheet-portrait__stand-in"
+                />
+              )}
+            </div>
+
+            {/* Said plainly, and on the sheet itself, so nobody holding the
+                card has to wonder whether that is meant to be them. */}
+            {reading.portraitUrl ? null : (
+              <figcaption className="sheet-portrait__note">
+                No photo was shared, so this picture is a stand-in.
+              </figcaption>
             )}
           </figure>
 

@@ -16,7 +16,7 @@ function serializeReading(reading, { isOwner = false } = {}) {
     status: reading.status,
     currentStage: reading.currentStage,
     stageProgressPercent: reading.stageProgressPercent,
-    stages: getStages(timeline),
+    stages: getStages(timeline, { withPortrait: Boolean(reading.profileSummary?.hasReferencePhoto) }),
     providerMode: reading.providerMode,
     degradedReason: reading.degradedReason || null,
     title: reading.title,
@@ -69,7 +69,7 @@ export async function createReading(req, res, next) {
 
     res.status(202).json({
       success: true,
-      data: { ...result, stages: getStages(result.timeline) },
+      data: { ...result, stages: getStages(result.timeline, { withPortrait: result.hasReferencePhoto }) },
       requestId: req.id,
     });
   } catch (error) {
