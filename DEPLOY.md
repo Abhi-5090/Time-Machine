@@ -25,11 +25,14 @@ origin. That avoids CORS entirely and means no preflight on the slow generation 
 | --- | --- |
 | Root Directory | `Time Machine Backend` |
 | Runtime | Node |
-| Build Command | `npm install` |
+| Build Command | `npm install && npm run build` |
 | Start Command | `npm start` |
 | Health Check Path | `/api/v1/health` |
 
 > The directory name contains a space. Paste it exactly, without quotes.
+>
+> The API has no build step, but it defines a no-op `build` script so Render's
+> default build command succeeds either way.
 
 Environment variables:
 
