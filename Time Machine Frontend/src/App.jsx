@@ -1,21 +1,22 @@
 import React from 'react';
-import { Navbar } from './components/common/Navbar';
-import { Footer } from './components/common/Footer';
 import { AppRouter } from './router';
-import { CelestialCanvas3D } from './components/3d/CelestialCanvas3D';
+import { ToastProvider } from './components/ui/Toast';
+import { WarpProvider } from './motion/warp';
 
+/**
+ * Theming, the backdrop and the page furniture all belong to PageShell, which
+ * each route renders for itself — a route declares which world it is in, and
+ * everything else follows. The only thing that has to live above the router is
+ * the toast viewport and the warp overlay, both of which have to survive a
+ * navigation — the warp because it is what hides the route change.
+ */
 export function App() {
   return (
-    <>
-      {/* 3D Celestial Starfield Canvas Background */}
-      <CelestialCanvas3D />
-
-      <Navbar />
-      <main style={{ flex: 1, position: 'relative', zIndex: 1 }}>
+    <ToastProvider>
+      <WarpProvider>
         <AppRouter />
-      </main>
-      <Footer />
-    </>
+      </WarpProvider>
+    </ToastProvider>
   );
 }
 

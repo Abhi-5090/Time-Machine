@@ -4,50 +4,99 @@ import { GenerationJob } from '../models/GenerationJob.js';
 import { UserProfile } from '../models/UserProfile.js';
 import { ZodiacService } from './zodiac.service.js';
 import { InterpretationService } from './interpretation.service.js';
+import { ForesightService } from './foresight.service.js';
 import { StorageService } from './storage.service.js';
 import { MockTextProvider } from '../providers/text/MockTextProvider.js';
 import { OpenAITextProvider } from '../providers/text/OpenAITextProvider.js';
 import { MockImageProvider } from '../providers/image/MockImageProvider.js';
 import { OpenAIImageProvider } from '../providers/image/OpenAIImageProvider.js';
+import { PromptService } from './prompt.service.js';
+import { ZODIAC_SIGNS, getZodiacSignByName } from '../constants/zodiac.js';
+import { getStages } from '../constants/stages.js';
+import { hashString } from '../utils/deterministic.js';
 import { config } from '../config/env.js';
+import { isProviderLive, getProviderHealth } from './providerHealth.js';
 
+const MAX_RETRIES = 3;
+
+function appError(message, code, statusCode) {
+  const err = new Error(message);
+  err.code = code;
+  err.isCustomError = true;
+  err.statusCode = statusCode;
+  return err;
+}
+
+/**
+ * Chooses the generators for a reading.
+ *
+ * Live output is used only when the boot-time preflight actually succeeded.
+ * Attempting it with a key already known to be rejected would make every
+ * reader wait out an API timeout before failing, so a known-bad provider
+ * degrades to the offline generator immediately — the reading still completes
+ * end to end, with a placeholder portrait and an honest note.
+ */
 function getProviders() {
-  const isLive = config.AI_PROVIDER_MODE === 'openai' && Boolean(config.OPENAI_API_KEY);
+  const live = isProviderLive();
+  if (!live) {
+    const health = getProviderHealth();
+    return {
+      textProvider: new MockTextProvider(),
+      imageProvider: new MockImageProvider(),
+      providerMode: 'mock',
+      degradedReason:
+        config.AI_PROVIDER_MODE === 'openai' && !health.live ? health.reason : null,
+    };
+  }
+
   return {
-    textProvider: isLive ? new OpenAITextProvider() : new MockTextProvider(),
-    imageProvider: isLive ? new OpenAIImageProvider() : new MockImageProvider(),
-    providerMode: isLive ? 'openai' : 'mock',
+    textProvider: new OpenAITextProvider(),
+    imageProvider: new OpenAIImageProvider(),
+    providerMode: 'openai',
+    degradedReason: null,
   };
 }
 
 export class ReadingService {
   /**
-   * Initializes a new reading and generation job.
+   * Resolves the star sign used by both timelines.
+   *
+   * `past` readings require an explicit sign (enforced by the validator).
+   * `future` readings treat it as a motif, so it is derived from the date of
+   * birth when possible and otherwise chosen deterministically from the name —
+   * never left empty, because downstream code assumes a valid sign.
    */
-  static async createReading({ profile, preferences, consent, ownerToken }) {
-    // 1. Enforce required consents
-    if (!consent?.readingProcessing || !consent?.fictionalReadingAcknowledged) {
-      const err = new Error('You must acknowledge that this is a fictional entertainment reading and consent to processing.');
-      err.code = 'CONSENT_REQUIRED';
-      err.isCustomError = true;
-      err.statusCode = 400;
-      throw err;
-    }
-
-    // 2. Validate zodiac alignment and calculate effective sign
+  static resolveSign({ timeline, profile }) {
     const alignment = ZodiacService.validateSignAlignment({
       dateOfBirth: profile.dateOfBirth,
       selectedZodiacSign: profile.selectedZodiacSign,
       inputMode: profile.zodiacInputMode || 'manual_symbolic_choice',
     });
 
-    const effectiveSign = alignment.effectiveSign;
-    const zodiacData = alignment.zodiacData;
+    if (alignment.effectiveSign) return alignment;
 
-    // 3. Save or persist profile
-    let userProfile = null;
+    if (timeline === 'future') {
+      const seed = hashString(profile.preferredName || profile.dateOfBirth || 'unsigned');
+      const fallback = ZODIAC_SIGNS[seed % ZODIAC_SIGNS.length];
+      return {
+        ...alignment,
+        effectiveSign: fallback.name,
+        zodiacData: fallback,
+        isConsistent: true,
+      };
+    }
+
+    throw appError(
+      'A star sign is required for a Time Machine reading.',
+      'VALIDATION_ERROR',
+      400
+    );
+  }
+
+  /** Persists the reader's profile. Failure is non-fatal: the reading still runs. */
+  static async persistProfile({ profile, preferences, consent, effectiveSign }) {
     try {
-      userProfile = new UserProfile({
+      const userProfile = new UserProfile({
         preferredName: profile.preferredName || '',
         dateOfBirth: profile.dateOfBirth || null,
         selectedZodiacSign: effectiveSign,
@@ -66,19 +115,42 @@ export class ReadingService {
         photoAssetId: profile.photoAssetId || null,
       });
       await userProfile.save();
+      return userProfile;
     } catch (dbErr) {
-      console.warn('[ReadingService] MongoDB UserProfile save skipped or failed:', dbErr.message);
+      console.warn('[ReadingService] UserProfile persistence skipped:', dbErr.message);
+      return null;
     }
+  }
+
+  /**
+   * Creates a reading and kicks off generation in the background.
+   * Returns as soon as the record exists so the client can start polling.
+   */
+  static async createReading({ timeline = 'past', profile, preferences = {}, consent, ownerToken }) {
+    if (!consent?.readingProcessing || !consent?.fictionalReadingAcknowledged) {
+      throw appError(
+        'You must acknowledge that this is a work of fiction and consent to processing before continuing.',
+        'CONSENT_REQUIRED',
+        400
+      );
+    }
+
+    const alignment = this.resolveSign({ timeline, profile });
+    const effectiveSign = alignment.effectiveSign;
+    const zodiacData = alignment.zodiacData || getZodiacSignByName(effectiveSign);
+
+    const userProfile = await this.persistProfile({ profile, preferences, consent, effectiveSign });
 
     const readingId = `rd_${uuidv4()}`;
     const token = ownerToken || uuidv4();
     const jobId = `job_${uuidv4()}`;
-    const { providerMode } = getProviders();
+    const { providerMode, degradedReason } = getProviders();
+    const [firstStage] = getStages(timeline);
 
-    // 4. Create reading record in database
     const reading = new Reading({
       readingId,
       ownerToken: token,
+      timeline,
       profileId: userProfile ? userProfile._id : null,
       profileSummary: {
         preferredName: profile.preferredName || '',
@@ -88,123 +160,75 @@ export class ReadingService {
         hasReferencePhoto: Boolean(profile.photoAssetId && consent.photoProcessing),
       },
       status: 'processing',
-      currentStage: 'preparing_profile',
+      currentStage: firstStage.id,
       stageProgressPercent: 15,
       providerMode,
+      degradedReason,
       celestialSignature: {
         mode: 'mystical_zodiac',
         selectedSign: effectiveSign,
         derivedSign: alignment.derivedSign,
-        symbolicThemes: zodiacData ? zodiacData.symbolicThemes : ['Wisdom', 'Mystery'],
+        symbolicThemes: zodiacData?.symbolicThemes || ['Wisdom', 'Mystery'],
         inputMode: profile.zodiacInputMode,
         element: zodiacData?.element || 'Celestial',
         ruler: zodiacData?.ruler || 'Starlight',
         mythicRealm: zodiacData?.mythicRealm || 'The Astral Sphere',
       },
-      archetype: {
-        id: preferences.archetypeId || 'auto',
-        name: 'Pending Celestial Calculation',
-        description: '',
-      },
+      disclaimer: timeline === 'future' ? PromptService.FUTURE_DISCLAIMER : PromptService.PAST_DISCLAIMER,
     });
+
+    if (timeline === 'past') {
+      reading.archetype = { id: preferences.archetypeId || 'auto', name: 'Awaiting alignment', description: '' };
+    }
 
     await reading.save();
 
-    const job = new GenerationJob({
+    await new GenerationJob({
       jobId,
       readingId,
       jobType: 'all',
       status: 'processing',
-      currentStage: 'preparing_profile',
+      currentStage: firstStage.id,
       startedAt: new Date(),
-    });
-    await job.save();
+    }).save();
 
-    // 5. Kick off asynchronous generation
-    this.executeGeneration(readingId, profile, preferences, consent, jobId).catch((err) => {
-      console.error(`[ReadingService] Background generation failed for ${readingId}:`, err);
+    this.executeGeneration({ readingId, timeline, profile, preferences, consent, jobId }).catch((err) => {
+      console.error(`[ReadingService] Background generation crashed for ${readingId}:`, err);
     });
 
     return {
       readingId,
       ownerToken: token,
+      timeline,
       status: 'processing',
-      currentStage: 'preparing_profile',
+      currentStage: firstStage.id,
       jobId,
     };
   }
 
-  /**
-   * Executes the multi-stage generation asynchronously.
-   */
-  static async executeGeneration(readingId, profile, preferences, consent, jobId) {
+  /** Advances the stored stage so pollers see live progress. */
+  static async advance(reading, stageId, timeline) {
+    const stage = getStages(timeline).find((s) => s.id === stageId);
+    reading.currentStage = stageId;
+    reading.stageProgressPercent = stage ? stage.progress : reading.stageProgressPercent;
+    await reading.save();
+  }
+
+  static async executeGeneration({ readingId, timeline, profile, preferences, consent, jobId }) {
     const reading = await Reading.findOne({ readingId });
     if (!reading) return;
 
     const { textProvider, imageProvider } = getProviders();
+    const referenceAssetId =
+      consent.photoProcessing && profile.photoAssetId ? profile.photoAssetId : null;
 
     try {
-      // Stage 1: Preparing profile
-      reading.currentStage = 'preparing_profile';
-      reading.stageProgressPercent = 25;
-      await reading.save();
+      if (timeline === 'future') {
+        await this.#generateFuture({ reading, profile, preferences, textProvider, imageProvider, referenceAssetId });
+      } else {
+        await this.#generatePast({ reading, profile, preferences, textProvider, imageProvider, referenceAssetId });
+      }
 
-      // Stage 2: Shaping character
-      reading.currentStage = 'shaping_character';
-      reading.stageProgressPercent = 45;
-      await reading.save();
-
-      const characterProfile = InterpretationService.buildCharacterProfile({
-        profile,
-        preferences,
-        effectiveSign: reading.celestialSignature.selectedSign,
-      });
-
-      reading.characterProfile = characterProfile;
-      reading.archetype = {
-        id: characterProfile.archetypeId,
-        name: characterProfile.archetypeName,
-        description: `The sacred soul archetype representing ${characterProfile.characterTraits.join(', ')}.`,
-      };
-      reading.imaginedSetting = {
-        era: characterProfile.era,
-        description: `${characterProfile.eraName} — ${characterProfile.setting}`,
-      };
-      await reading.save();
-
-      // Stage 3: Writing story
-      reading.currentStage = 'writing_story';
-      reading.stageProgressPercent = 65;
-      await reading.save();
-
-      const storyData = await textProvider.generateStory(
-        characterProfile,
-        reading.celestialSignature,
-        preferences
-      );
-
-      reading.storySections = storyData.storySections;
-      reading.symbolicKarmicThemes = storyData.symbolicKarmicThemes;
-      reading.presentDayReflection = storyData.presentDayReflection;
-      reading.disclaimer = storyData.disclaimer;
-      await reading.save();
-
-      // Stage 4: Creating portrait
-      reading.currentStage = 'creating_portrait';
-      reading.stageProgressPercent = 85;
-      await reading.save();
-
-      const referenceAssetId = consent.photoProcessing && profile.photoAssetId ? profile.photoAssetId : null;
-      const portraitAsset = await imageProvider.generatePortrait(
-        characterProfile,
-        preferences,
-        referenceAssetId
-      );
-
-      reading.portraitAssetId = portraitAsset.assetId;
-      reading.portraitUrl = `/api/v1/portraits/${portraitAsset.assetId}`;
-
-      // Complete!
       reading.currentStage = 'completed';
       reading.stageProgressPercent = 100;
       reading.status = 'completed';
@@ -215,12 +239,12 @@ export class ReadingService {
         { status: 'completed', currentStage: 'completed', completedAt: new Date() }
       );
 
-      console.log(`[ReadingService] Reading ${readingId} completed successfully!`);
+      console.log(`[ReadingService] ${timeline} reading ${readingId} completed.`);
     } catch (err) {
       console.error(`[ReadingService] Generation failed for ${readingId}:`, err);
       reading.status = 'failed';
       reading.currentStage = 'failed';
-      reading.errorMessage = err.message || 'Celestial alignment disrupted during generation.';
+      reading.errorMessage = err.message || 'Generation was interrupted. Please try again.';
       await reading.save();
 
       await GenerationJob.findOneAndUpdate(
@@ -230,65 +254,157 @@ export class ReadingService {
     }
   }
 
-  /**
-   * Retrieves reading by ID.
-   */
+  static async #generatePast({ reading, profile, preferences, textProvider, imageProvider, referenceAssetId }) {
+    await this.advance(reading, 'preparing_profile', 'past');
+    await this.advance(reading, 'shaping_character', 'past');
+
+    const characterProfile = InterpretationService.buildCharacterProfile({
+      profile,
+      preferences,
+      effectiveSign: reading.celestialSignature.selectedSign,
+    });
+
+    reading.characterProfile = characterProfile;
+    reading.archetype = {
+      id: characterProfile.archetypeId,
+      name: characterProfile.archetypeName,
+      description: `The soul archetype of ${characterProfile.characterTraits.join(', ').toLowerCase()}.`,
+    };
+    reading.imaginedSetting = {
+      era: characterProfile.era,
+      description: `${characterProfile.eraName} — ${characterProfile.setting}`,
+    };
+    await reading.save();
+
+    await this.advance(reading, 'writing_story', 'past');
+    const story = await textProvider.generateStory(
+      characterProfile,
+      reading.celestialSignature,
+      preferences
+    );
+
+    const fallback = InterpretationService.buildSymbolicThemesAndReflection(
+      characterProfile,
+      reading.celestialSignature.selectedSign
+    );
+
+    reading.title = story.title || `${characterProfile.characterName} — ${characterProfile.occupation}`;
+    reading.storySections = story.storySections;
+    reading.symbolicKarmicThemes = story.symbolicKarmicThemes?.length
+      ? story.symbolicKarmicThemes
+      : fallback.symbolicKarmicThemes;
+    reading.presentDayReflection = story.presentDayReflection || fallback.presentDayReflection;
+    reading.disclaimer = story.disclaimer || PromptService.PAST_DISCLAIMER;
+    await reading.save();
+
+    await this.advance(reading, 'creating_portrait', 'past');
+    const portrait = await imageProvider.generatePortrait(characterProfile, preferences, referenceAssetId);
+    reading.portraitAssetId = portrait.assetId;
+    reading.portraitUrl = `${config.API_BASE_PATH}/portraits/${portrait.assetId}`;
+    await reading.save();
+  }
+
+  static async #generateFuture({ reading, profile, preferences, textProvider, imageProvider, referenceAssetId }) {
+    await this.advance(reading, 'calibrating_signal', 'future');
+    await this.advance(reading, 'projecting_persona', 'future');
+
+    const futureProfile = ForesightService.buildFutureProfile({
+      profile,
+      preferences,
+      effectiveSign: reading.celestialSignature.selectedSign,
+    });
+
+    reading.futureProfile = futureProfile;
+    reading.signals = ForesightService.buildSignals(futureProfile);
+    reading.timelineMarkers = ForesightService.buildTimelineMarkers(futureProfile);
+    reading.archetype = {
+      id: futureProfile.archetypeId,
+      name: futureProfile.archetypeName,
+      description: futureProfile.archetypeSummary,
+    };
+    reading.imaginedSetting = {
+      era: String(futureProfile.targetYear),
+      description: `${futureProfile.habitatName} — ${futureProfile.habitatTagline}`,
+    };
+    await reading.save();
+
+    await this.advance(reading, 'composing_chronicle', 'future');
+    const chronicle = await textProvider.generateFuture(
+      futureProfile,
+      reading.celestialSignature,
+      preferences
+    );
+
+    reading.title = chronicle.title || `${futureProfile.personaName} — ${futureProfile.roleTitle}`;
+    reading.futureSections = chronicle.futureSections;
+    reading.futureSignalsNarrative = chronicle.futureSignalsNarrative || [];
+    reading.presentDayDirective =
+      chronicle.presentDayDirective || ForesightService.buildPresentDayDirective(futureProfile);
+    reading.disclaimer = chronicle.disclaimer || PromptService.FUTURE_DISCLAIMER;
+    await reading.save();
+
+    await this.advance(reading, 'rendering_portrait', 'future');
+    const portrait = await imageProvider.generateFuturePortrait(futureProfile, preferences, referenceAssetId);
+    reading.portraitAssetId = portrait.assetId;
+    reading.portraitUrl = `${config.API_BASE_PATH}/portraits/${portrait.assetId}`;
+    await reading.save();
+  }
+
   static async getReading(readingId) {
-    const reading = await Reading.findOne({ readingId });
-    if (!reading) return null;
-    return reading;
+    return Reading.findOne({ readingId });
   }
 
   /**
-   * Retries portrait or full generation.
+   * Re-renders the portrait only. The narrative is deliberately preserved so a
+   * retry never changes the story the reader has already seen.
    */
-  static async retryGeneration(readingId, ownerToken) {
+  static async retryGeneration(readingId) {
     const reading = await Reading.findOne({ readingId });
-    if (!reading) {
-      const err = new Error('Reading not found.');
-      err.code = 'READING_NOT_FOUND';
-      err.isCustomError = true;
-      err.statusCode = 404;
-      throw err;
+    if (!reading) throw appError('Reading not found.', 'READING_NOT_FOUND', 404);
+
+    if (reading.retryCount >= MAX_RETRIES) {
+      throw appError(
+        `This reading has already been retried ${MAX_RETRIES} times.`,
+        'RATE_LIMITED',
+        429
+      );
     }
 
-    if (reading.retryCount >= 3) {
-      const err = new Error('Maximum retry attempts reached for this reading.');
-      err.code = 'RATE_LIMITED';
-      err.isCustomError = true;
-      err.statusCode = 429;
-      throw err;
-    }
+    const timeline = reading.timeline || 'past';
+    const portraitStage = timeline === 'future' ? 'rendering_portrait' : 'creating_portrait';
 
     reading.retryCount += 1;
     reading.status = 'processing';
-    reading.currentStage = 'creating_portrait';
-    reading.stageProgressPercent = 80;
+    reading.currentStage = portraitStage;
+    reading.stageProgressPercent = 90;
     reading.errorMessage = null;
     await reading.save();
 
-    const jobId = `job_${uuidv4()}`;
     const { imageProvider } = getProviders();
 
-    // Asynchronously retry portrait
     (async () => {
       try {
-        const referenceAssetId = reading.profileSummary?.hasReferencePhoto
-          ? (await UserProfile.findById(reading.profileId))?.photoAssetId
-          : null;
+        const owner = reading.profileId ? await UserProfile.findById(reading.profileId) : null;
+        const referenceAssetId = reading.profileSummary?.hasReferencePhoto ? owner?.photoAssetId || null : null;
+        const preferences = owner?.preferences ? owner.preferences.toObject?.() ?? owner.preferences : {};
 
-        const portraitAsset = await imageProvider.generatePortrait(
-          reading.characterProfile,
-          {},
-          referenceAssetId
-        );
+        const portrait =
+          timeline === 'future'
+            ? await imageProvider.generateFuturePortrait(reading.futureProfile, preferences, referenceAssetId)
+            : await imageProvider.generatePortrait(reading.characterProfile, preferences, referenceAssetId);
 
-        reading.portraitAssetId = portraitAsset.assetId;
-        reading.portraitUrl = `/api/v1/portraits/${portraitAsset.assetId}`;
+        // Clean up the superseded asset so retries don't accumulate orphans.
+        const previousAssetId = reading.portraitAssetId;
+        reading.portraitAssetId = portrait.assetId;
+        reading.portraitUrl = `${config.API_BASE_PATH}/portraits/${portrait.assetId}`;
         reading.status = 'completed';
         reading.currentStage = 'completed';
         reading.stageProgressPercent = 100;
         await reading.save();
+
+        if (previousAssetId && previousAssetId !== portrait.assetId) {
+          await StorageService.deletePortrait(previousAssetId).catch(() => {});
+        }
       } catch (retryErr) {
         reading.status = 'failed';
         reading.currentStage = 'failed';
@@ -299,36 +415,32 @@ export class ReadingService {
 
     return {
       readingId,
+      timeline,
       status: 'processing',
-      currentStage: 'creating_portrait',
+      currentStage: portraitStage,
       retryCount: reading.retryCount,
     };
   }
 
-  /**
-   * Deletes a reading and all associated assets.
-   */
+  /** Permanently removes the reading, its portrait, and the stored profile. */
   static async deleteReading(readingId) {
     const reading = await Reading.findOne({ readingId });
     if (!reading) return false;
 
-    // Delete generated portrait if exists
     if (reading.portraitAssetId) {
-      await StorageService.deletePortrait(reading.portraitAssetId);
+      await StorageService.deletePortrait(reading.portraitAssetId).catch(() => {});
     }
 
-    // Delete reference photo if profile exists
     if (reading.profileId) {
       const profile = await UserProfile.findById(reading.profileId);
       if (profile?.photoAssetId) {
-        await StorageService.deleteReferencePhoto(profile.photoAssetId);
+        await StorageService.deleteReferencePhoto(profile.photoAssetId).catch(() => {});
       }
       await UserProfile.findByIdAndDelete(reading.profileId);
     }
 
     await Reading.findOneAndDelete({ readingId });
     await GenerationJob.deleteMany({ readingId });
-
     return true;
   }
 }

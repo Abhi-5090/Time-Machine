@@ -1,0 +1,96 @@
+/* ==========================================================================
+   Continuum
+   --------------------------------------------------------------------------
+   Two panels with "now" standing between them. Each panel carries its own
+   timeline attribute, so the warm half and the cold half resolve their own
+   tokens while sharing one layout.
+   ========================================================================== */
+
+.continuum {
+  display: grid;
+  gap: var(--space-5);
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.continuum-panel {
+  padding: var(--space-5);
+  background: var(--bg);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md);
+  color: var(--ink);
+  display: flex;
+  flex-direction: column;
+}
+
+.continuum-panel-empty {
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  min-height: 420px;
+}
+
+.continuum-portrait {
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--surface-sunken);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+}
+
+.continuum-portrait img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── The seam ───────────────────────────────────────────────────────────── */
+
+.continuum-seam {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  transform-origin: center;
+}
+
+.continuum-seam-line {
+  flex: 1;
+  width: 1px;
+  background: linear-gradient(180deg, transparent, var(--rule-strong), transparent);
+}
+
+.continuum-now {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  letter-spacing: 0.3em;
+  color: var(--ink-muted);
+  writing-mode: vertical-rl;
+  padding-block: var(--space-2);
+}
+
+/* ── Stacked ────────────────────────────────────────────────────────────── */
+
+@media (max-width: 920px) {
+  .continuum {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .continuum-seam {
+    flex-direction: row;
+    width: 100%;
+    padding-block: var(--space-2);
+  }
+
+  .continuum-seam-line {
+    width: auto;
+    height: 1px;
+    background: linear-gradient(90deg, transparent, var(--rule-strong), transparent);
+  }
+
+  .continuum-now {
+    writing-mode: horizontal-tb;
+    padding-inline: var(--space-2);
+    padding-block: 0;
+  }
+}

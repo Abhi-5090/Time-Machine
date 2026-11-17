@@ -1,0 +1,39 @@
+# Render Blueprint. Create the service from this file, or configure the same
+# values by hand in the dashboard.
+services:
+  - type: web
+    name: time-machine-api
+    runtime: node
+    plan: free
+    rootDir: "Time Machine Backend"
+    buildCommand: npm install
+    startCommand: npm start
+    healthCheckPath: /api/v1/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_BASE_PATH
+        value: /api/v1
+      # The hosted filesystem is wiped on every deploy, so assets live in the
+      # database instead. Do not set this to "local" in production.
+      - key: STORAGE_PROVIDER
+        value: mongodb
+      - key: AI_PROVIDER_MODE
+        value: openai
+      - key: OPENAI_TEXT_MODEL
+        value: gpt-4o-mini
+      - key: OPENAI_IMAGE_MODEL
+        value: gpt-image-2
+      - key: OPENAI_IMAGE_SIZE
+        value: 1024x1536
+      - key: READING_RETENTION_DAYS
+        value: "30"
+      # Set these in the dashboard — never commit them.
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: MONGODB_URI
+        sync: false
+      # Your Vercel domain(s), comma-separated. Only needed if the browser
+      # calls this service directly instead of through the Vercel rewrite.
+      - key: CLIENT_ORIGIN
+        sync: false

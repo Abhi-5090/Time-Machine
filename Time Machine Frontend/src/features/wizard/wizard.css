@@ -1,0 +1,212 @@
+/* ==========================================================================
+   Wizard
+   ========================================================================== */
+
+.wizard {
+  padding-block: var(--space-7) var(--space-9);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* ── Step rail ──────────────────────────────────────────────────────────── */
+
+.wizard-rail ol {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.wizard-rail button {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--space-2);
+  padding: 7px 12px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+  transition:
+    color var(--dur-fast) var(--ease-soft),
+    border-color var(--dur-fast) var(--ease-soft),
+    background-color var(--dur-fast) var(--ease-soft),
+    transform var(--dur-press) var(--ease-out);
+}
+
+.wizard-rail button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.wizard-rail button:disabled {
+  cursor: default;
+  opacity: 0.55;
+}
+
+.wizard-rail button[data-state='current'] {
+  color: var(--ink);
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.wizard-rail button[data-state='done'] {
+  color: var(--ink-soft);
+  border-color: var(--rule);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .wizard-rail button[data-state='done']:hover {
+    color: var(--ink);
+    border-color: var(--rule-strong);
+  }
+}
+
+.wizard-rail-index {
+  font-family: var(--font-mono);
+  font-size: 0.66rem;
+  opacity: 0.75;
+}
+
+[data-timeline='future'] .wizard-rail button {
+  border-radius: var(--radius-xs);
+  font-family: var(--font-mono);
+  font-size: 0.7rem;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+/* ── Step body ──────────────────────────────────────────────────────────── */
+
+.wizard-body {
+  min-height: 420px;
+  padding-top: var(--space-4);
+}
+
+.wizard-step-head {
+  margin-bottom: var(--space-6);
+}
+
+.wizard-step-description {
+  margin-top: var(--space-3);
+  color: var(--ink-soft);
+  font-size: 1rem;
+  line-height: 1.65;
+  max-width: 58ch;
+}
+
+.wizard-step-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-5);
+}
+
+/* ── Error ──────────────────────────────────────────────────────────────── */
+
+.wizard-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-4);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 45%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  color: var(--color-danger);
+  font-size: 0.88rem;
+}
+
+/* ── Controls ───────────────────────────────────────────────────────────── */
+
+.wizard-controls {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-5);
+  border-top: 1px solid var(--rule);
+}
+
+.wizard-footnote {
+  font-size: 0.78rem;
+  color: var(--ink-muted);
+  line-height: 1.6;
+}
+
+/* ── Review list ────────────────────────────────────────────────────────── */
+
+.review-list {
+  display: grid;
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+}
+
+.review-row {
+  display: grid;
+  grid-template-columns: minmax(130px, 34%) 1fr;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-4);
+  background: var(--surface);
+  font-size: 0.9rem;
+}
+
+.review-row dt {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  align-self: center;
+}
+
+.review-row dt svg {
+  color: var(--accent);
+  opacity: 0.8;
+}
+
+.review-row dd {
+  margin: 0;
+  color: var(--ink);
+}
+
+/* ── Photo step ─────────────────────────────────────────────────────────── */
+
+.photo-drop {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-3);
+  padding: var(--space-7) var(--space-5);
+  border: 1px dashed var(--rule-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface-sunken);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    border-color var(--dur-fast) var(--ease-soft),
+    background-color var(--dur-fast) var(--ease-soft);
+}
+
+.photo-drop[data-dragging='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.photo-preview {
+  width: 112px;
+  height: 112px;
+  border-radius: var(--radius-md);
+  object-fit: cover;
+  border: 1px solid var(--rule-strong);
+}
+
+@media (max-width: 560px) {
+  .review-row {
+    grid-template-columns: 1fr;
+    gap: var(--space-1);
+  }
+}

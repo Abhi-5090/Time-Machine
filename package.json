@@ -1,7 +1,7 @@
 {
-  "name": "mystical-past-life-astrology",
+  "name": "time-machine",
   "version": "1.0.0",
-  "description": "Mystical Past-Life Astrology — Complete Production-Ready Application",
+  "description": "Time Machine \u2014 two doors: an imagined past life, or your life in 2050",
   "scripts": {
     "install:all": "npm --prefix \"Time Machine Backend\" install && npm --prefix \"Time Machine Frontend\" install",
     "dev:backend": "npm --prefix \"Time Machine Backend\" run dev",
@@ -15,5 +15,8 @@
   },
   "devDependencies": {
     "concurrently": "^9.1.0"
+  },
+  "engines": {
+    "node": ">=20 <23"
   }
 }

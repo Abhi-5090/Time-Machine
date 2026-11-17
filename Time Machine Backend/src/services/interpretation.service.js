@@ -1,33 +1,7 @@
 import { getZodiacSignByName } from '../constants/zodiac.js';
 import { ARCHETYPES, getArchetypeById } from '../constants/archetypes.js';
-
-function hashString(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    const char = str.charCodeAt(i);
-    hash = (hash << 5) - hash + char;
-    hash |= 0;
-  }
-  return Math.abs(hash);
-}
-
-const HISTORICAL_ERAS = [
-  { id: 'ancient', label: 'Ancient Era', desc: 'A bronze-age realm of monumental ziggurats, river valleys, and starlit rites' },
-  { id: 'medieval', label: 'High Medieval Era', desc: 'An era of stone fortresses, illuminated heraldry, cathedral spires, and mountain keeps' },
-  { id: 'renaissance', label: 'Early Modern / Renaissance', desc: 'An age of maritime exploration, celestial cartography, mechanical clocks, and velvet courts' },
-  { id: 'timeless', label: 'Timeless Mystical Realm', desc: 'A mythic sanctuary beyond mortal calendars, where starlight reflects upon eternal waters' },
-];
-
-const FICTIONAL_NAMES = {
-  sage: ['Lysander of the Whispering Spire', 'Kaelen the Star-Weaver', 'Master Theron of Aethelgard', 'Mirabai of the Crystal Reach', 'Elowen of the Silver Vellum'],
-  guardian: ['Valerius the Iron-Bane', 'Althea of the Solstice Gate', 'Commander Gareth of High Bastion', 'Rhea of the Azure Shield', 'Talon of the Sunken Watch'],
-  healer: ['Seraphina of the Lotus Glen', 'Brother Alden of the Cedar Springs', 'Elysia the Mend-Weaver', 'Rowan of the Deep Well', 'Isolde of the Morning Herbarium'],
-  ruler: ['Aurelius of the Sunlit Court', 'Queen Vespera of the Astral Reach', 'Lord Corin the Peace-Bringer', 'Empress Danika of High Solstice', 'Sovereign Cassian of the Sunken Isles'],
-  seeker: ['Zephyr the Dune-Strider', 'Maris of the Cloudless Deep', 'Kieran of the Obsidian Compass', 'Lyra the Star-Chaser', 'Orion the Drift-Farer'],
-  artist: ['Julian of the Gilded Lyre', 'Calliope the Mosaicist', 'Bastian of the Prismatic Spires', 'Fiora of the Twilight Loom', 'Dante the Fresco-Master'],
-  diplomat: ['Lady Genevieve of the Accord', 'Silas the Peacemaker', 'Ambassador Vivienne of the Silver Lake', 'Lord Ronin the Bridge-Builder', 'Lucian the Quiet Voice'],
-  wanderer: ['Bramble of the Far Ridges', 'Finnian the Open-Road', 'Astrid of the Wild Pines', 'Rory the Storm-Drifter', 'Kaia of the Borderless Steppe'],
-};
+import { HISTORICAL_ERAS, FICTIONAL_NAMES } from '../constants/past.js';
+import { hashString } from '../utils/deterministic.js';
 
 export class InterpretationService {
   /**

@@ -1,96 +1,228 @@
+/* ==========================================================================
+   Design tokens
+   --------------------------------------------------------------------------
+   The app has two visual worlds and one neutral threshold between them.
+   Every component reads the same semantic variable names (--bg, --ink,
+   --accent …); the values are re-declared per timeline, so a single
+   `data-timeline` attribute on an ancestor re-skins an entire subtree.
+
+       data-timeline="portal"   the threshold: neutral, cold, still
+       data-timeline="past"     printed matter: parchment, brass, ink
+       data-timeline="future"   2050: void black, cyan, magenta
+
+   Component styles must never reach for a raw palette value directly.
+   ========================================================================== */
+
 :root {
+  /* ── Motion ────────────────────────────────────────────────────────────
+     Built-in CSS easings are too weak to read as intentional. These are the
+     strong variants used everywhere; `--ease-out` is the default because
+     entering elements must move immediately to feel responsive.            */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+  --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+  --ease-soft: cubic-bezier(0.4, 0, 0.2, 1);
+
+  --dur-press: 140ms;
+  --dur-fast: 180ms;
+  --dur-base: 240ms;
+  --dur-slow: 400ms;
+  --dur-scene: 700ms;
+
+  /* ── Spacing: a 4px scale ───────────────────────────────────────────── */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 24px;
+  --space-6: 32px;
+  --space-7: 48px;
+  --space-8: 64px;
+  --space-9: 96px;
+  --space-10: 128px;
+
+  /* ── Layout ─────────────────────────────────────────────────────────── */
+  --content-width: 1200px;
+  --prose-width: 68ch;
+  --nav-height: 68px;
+  --gutter: 20px;
+
+  /* ── Radii: overridden per timeline. The past is soft, 2050 is cut. ──── */
+  --radius-xs: 4px;
+  --radius-sm: 8px;
+  --radius-md: 14px;
+  --radius-lg: 22px;
+  --radius-full: 999px;
+
+  /* ── Feedback, shared across both worlds ────────────────────────────── */
+  --color-positive: #3f8f6a;
+  --color-caution: #b4791f;
+  --color-danger: #b23a34;
+
+  /* ── z-index ladder ─────────────────────────────────────────────────── */
+  --z-backdrop: 0;
+  --z-content: 1;
+  --z-sticky: 50;
+  --z-nav: 100;
+  --z-overlay: 200;
+  --z-toast: 300;
+}
+
+/* ==========================================================================
+   The threshold
+   ========================================================================== */
+[data-timeline='portal'] {
   color-scheme: dark;
 
-  /* ==========================================================================
-     Luminous Celestial 3D Design Tokens
-     Ultra-rich, vibrant, best-in-class cosmic color combinations & depth
-     ========================================================================== */
-  
-  /* Primary Canvases & Depths */
-  --color-bg: #050716;                /* Deep Space Obsidian: Rich, immersive void */
-  --color-bg-secondary: #0A0F2D;      /* Midnight Astral Horizon */
-  --color-surface: rgba(14, 20, 52, 0.75); /* Translucent Cosmic Glass */
-  --color-surface-elevated: rgba(24, 32, 78, 0.85); /* Elevated Holographic Surface */
-  --color-surface-card: rgba(16, 24, 60, 0.65);
-  
-  /* Vibrant Solar Golds (Primary CTAs & Key Accents) */
-  --color-primary: #FFD700;           /* Radiant Solar Gold */
-  --color-primary-light: #FFE873;     /* Starlight Gold Flare */
-  --color-primary-dark: #D4A017;      /* Burnished Antique Gold */
-  --color-on-primary: #070914;        /* Deep Void for high contrast text on gold */
+  /* The threshold palette, taken from the opening scene: a deep indigo night
+     warming to violet toward the gate, with a cyan edge on the two doors and a
+     magenta counter-light. Only this screen uses it — step through either door
+     and that timeline's own palette takes over. */
+  --bg: #0a0f28;
+  --bg-deep: #050818;
+  --bg-mid: #141a44;
+  --bg-elevated: #161e47;
+  --surface: rgba(32, 38, 92, 0.52);
+  --surface-raised: rgba(48, 54, 116, 0.68);
+  --surface-sunken: rgba(8, 12, 34, 0.62);
 
-  /* Electric Mystical Accents */
-  --color-accent: #8B5CF6;            /* Electric Violet */
-  --color-accent-light: #C084FC;      /* Ethereal Lavender Glow */
-  --color-accent-dark: #6D28D9;       /* Deep Cosmic Purple */
-  --color-cyan: #06B6D4;              /* Astral Starlight Cyan */
-  --color-cyan-light: #38BDF8;        /* Neon Starlight Cyan */
+  --ink: #ffffff;
+  --ink-soft: #c6cdf0;
+  --ink-muted: #8d95c4;
+  --ink-inverse: #0a0f28;
 
-  /* Elemental Color Profiles */
-  --color-fire: #FF5733;              /* Solar Fire */
-  --color-earth: #10B981;             /* Celestial Emerald Earth */
-  --color-air: #06B6D4;               /* Ethereal Breeze */
-  --color-water: #6366F1;             /* Deep Astral Water */
+  --rule: rgba(150, 162, 235, 0.2);
+  --rule-strong: rgba(150, 162, 235, 0.42);
 
-  /* Text & Readability (Sharp, brilliant, accessible) */
-  --color-text: #F8FAFC;              /* Brilliant Starlight Ivory */
-  --color-text-secondary: #E2E8F0;    /* Silver Moonlight */
-  --color-text-muted: #94A3B8;        /* Soft Cosmic Dust */
-  
-  /* Glass Borders & Chromatic Outlines */
-  --color-border: rgba(148, 163, 184, 0.2);
-  --color-border-glow: rgba(255, 215, 0, 0.45);
-  --color-border-violet: rgba(139, 92, 246, 0.45);
-  --color-border-cyan: rgba(6, 182, 212, 0.45);
+  --accent: #8b5cf6;            /* portal violet */
+  --accent-contrast: #ffffff;
+  --accent-soft: rgba(139, 92, 246, 0.2);
+  --accent-2: #6fe3ff;          /* door edge cyan */
+  --accent-3: #ff6ec7;          /* counter-light magenta */
+  --accent-4: #ffd9a0;          /* the warm core of the gate */
 
-  /* Feedback Colors */
-  --color-success: #10B981;           /* Emerald Celestial Sage */
-  --color-warning: #F59E0B;           /* Radiant Solar Amber */
-  --color-danger: #F43F5E;            /* Supernova Rose */
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.5);
+  --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.7);
+  --shadow-lg: 0 32px 64px -24px rgba(0, 0, 0, 0.85);
 
-  /* Dynamic Holographic & Cosmic Gradients */
-  --grad-gold: linear-gradient(135deg, #FFF9D2 0%, #FFD700 45%, #F59E0B 80%, #D4A017 100%);
-  --grad-violet-cyan: linear-gradient(135deg, #8B5CF6 0%, #6366F1 50%, #06B6D4 100%);
-  --grad-holographic: linear-gradient(135deg, rgba(255, 215, 0, 0.35) 0%, rgba(139, 92, 246, 0.3) 50%, rgba(6, 182, 212, 0.35) 100%);
-  --grad-card: linear-gradient(145deg, rgba(24, 32, 78, 0.8) 0%, rgba(10, 15, 45, 0.9) 100%);
-  --grad-hero: radial-gradient(circle at 50% 20%, rgba(30, 42, 105, 0.6) 0%, rgba(10, 15, 45, 0.95) 60%, #050716 100%);
+  --font-display: 'Unbounded', 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-label: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-body: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
 
-  /* 3D Shadows & Volumetric Glows */
-  --shadow-sm: 0 4px 12px rgba(0, 0, 0, 0.4);
-  --shadow-card: 0 16px 40px -10px rgba(0, 0, 0, 0.6), 0 0 20px rgba(139, 92, 246, 0.15);
-  --shadow-elevated: 0 24px 60px -12px rgba(0, 0, 0, 0.75), 0 0 35px rgba(255, 215, 0, 0.2);
-  --shadow-gold: 0 0 25px rgba(255, 215, 0, 0.45), 0 4px 20px rgba(245, 158, 11, 0.3);
-  --shadow-violet: 0 0 30px rgba(139, 92, 246, 0.5), 0 4px 25px rgba(99, 102, 241, 0.35);
-  --shadow-cyan: 0 0 25px rgba(6, 182, 212, 0.45);
+  --display-weight: 700;
+  --display-tracking: -0.035em;
+  --display-leading: 0.98;
 
-  /* Typography */
-  --font-display: 'Cinzel', 'Cormorant Garamond', Georgia, serif;
-  --font-heading: 'Cormorant Garamond', Georgia, serif;
-  --font-body: 'Plus Jakarta Sans', Inter, system-ui, -apple-system, sans-serif;
+  --tracking-label: 0.18em;
+  --dur-ui: var(--dur-base);
+}
 
-  /* Spacing */
-  --space-xs: 4px;
-  --space-sm: 8px;
-  --space-md: 16px;
-  --space-lg: 24px;
-  --space-xl: 32px;
-  --space-2xl: 48px;
-  --space-3xl: 64px;
+/* ==========================================================================
+   Past — printed matter. Warm, matte, unhurried, almost no glow.
+   ========================================================================== */
+[data-timeline='past'] {
+  color-scheme: light;
 
-  /* Border Radii */
-  --radius-xs: 6px;
-  --radius-sm: 10px;
-  --radius-md: 18px;
-  --radius-lg: 26px;
-  --radius-full: 9999px;
+  --bg: #e9dfca;
+  --bg-deep: #ddd0b4;
+  --bg-elevated: #f3ecdc;
+  --surface: #f2ebd9;
+  --surface-raised: #f8f1e0;
+  --surface-sunken: #e3d8bf;
 
-  /* Layout */
-  --content-max-width: 1240px;
-  --header-height: 80px;
+  --ink: #241a11;
+  --ink-soft: #4b3a28;
+  --ink-muted: #7d6a52;
+  --ink-inverse: #faf5e9;
 
-  /* Animation Timings */
-  --spring-bounce: cubic-bezier(0.34, 1.56, 0.64, 1);
-  --transition-fast: 180ms ease;
-  --transition-normal: 300ms cubic-bezier(0.16, 1, 0.3, 1);
-  --transition-slow: 600ms cubic-bezier(0.16, 1, 0.3, 1);
+  --rule: rgba(101, 80, 50, 0.22);
+  --rule-strong: rgba(101, 80, 50, 0.42);
+
+  --accent: #8a5524;          /* sienna / oxidised brass */
+  --accent-contrast: #faf5e9;
+  --accent-soft: rgba(138, 85, 36, 0.12);
+  --accent-2: #7a2b26;        /* wax-seal oxblood */
+  --accent-3: #4e6b5c;        /* verdigris */
+  --gilt: #9d7b2f;
+
+  --shadow-sm: 0 1px 1px rgba(68, 48, 24, 0.12);
+  --shadow-md: 0 10px 24px -14px rgba(68, 48, 24, 0.42);
+  --shadow-lg: 0 28px 56px -30px rgba(68, 48, 24, 0.5);
+
+  --font-display: 'Fraunces', 'Spectral', Georgia, serif;
+  --font-label: 'Cinzel', Georgia, serif;
+  --font-body: 'Spectral', Georgia, serif;
+  --font-mono: 'Spectral', Georgia, serif;
+
+  /* Fraunces at display size wants a touch more weight and a tighter fit than
+     its defaults; SOFT and WONK are what give it the period character. */
+  --display-weight: 600;
+  --display-tracking: -0.022em;
+  --display-leading: 0.96;
+  --display-variation: 'SOFT' 28, 'WONK' 1;
+
+  --tracking-label: 0.2em;
+  --radius-xs: 2px;
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  /* The past moves slowly on purpose; it should feel like turning a page. */
+  --dur-ui: var(--dur-slow);
+}
+
+/* ==========================================================================
+   Future — 2050. Cold, luminous, high contrast, cut corners.
+   ========================================================================== */
+[data-timeline='future'] {
+  color-scheme: dark;
+
+  --bg: #04070e;
+  --bg-deep: #01030a;
+  --bg-elevated: #070d1b;
+  --surface: rgba(9, 17, 31, 0.72);
+  --surface-raised: rgba(14, 25, 44, 0.9);
+  --surface-sunken: rgba(2, 5, 12, 0.72);
+
+  --ink: #e6f3ff;
+  --ink-soft: #9fc0d8;
+  --ink-muted: #627f98;
+  --ink-inverse: #02050c;
+
+  --rule: rgba(94, 242, 255, 0.16);
+  --rule-strong: rgba(94, 242, 255, 0.4);
+
+  --accent: #5ef2ff;          /* signal cyan */
+  --accent-contrast: #02050c;
+  --accent-soft: rgba(94, 242, 255, 0.12);
+  --accent-2: #ff2e9a;        /* alert magenta */
+  --accent-3: #7c3aed;        /* deep violet */
+  --accent-4: #b6ff3c;        /* confirm lime */
+
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.6);
+  --shadow-md: 0 12px 32px -12px rgba(0, 0, 0, 0.8);
+  --shadow-lg: 0 36px 72px -28px rgba(0, 0, 0, 0.9);
+  --glow-accent: 0 0 0 1px rgba(94, 242, 255, 0.28), 0 0 28px -4px rgba(94, 242, 255, 0.4);
+  --glow-accent-2: 0 0 0 1px rgba(255, 46, 154, 0.3), 0 0 28px -4px rgba(255, 46, 154, 0.4);
+
+  --font-display: 'Unbounded', 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-label: 'JetBrains Mono', ui-monospace, monospace;
+  --font-body: 'Space Grotesk', ui-sans-serif, system-ui, sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+
+  /* Unbounded is already wide, so it is tracked in hard and set heavy — that
+     combination is what makes 2050 read as engineered rather than merely bold. */
+  --display-weight: 700;
+  --display-tracking: -0.045em;
+  --display-leading: 0.94;
+
+  --tracking-label: 0.22em;
+  --radius-xs: 1px;
+  --radius-sm: 2px;
+  --radius-md: 3px;
+  --radius-lg: 4px;
+
+  /* 2050 is fast. Nothing here should feel like it is thinking. */
+  --dur-ui: var(--dur-fast);
 }

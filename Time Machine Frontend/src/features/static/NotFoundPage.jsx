@@ -1,27 +1,42 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Compass, Moon } from 'lucide-react';
+import { PageShell } from '../../components/layout/PageShell';
+import { LottieIcon } from '../../lottie/LottieIcon';
 
-export function NotFoundPage() {
+export default function NotFoundPage() {
   return (
-    <div style={{
-      minHeight: '60vh',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      padding: 'var(--space-2xl) var(--space-md)',
-      textAlign: 'center',
-    }}>
-      <div className="card" style={{ maxWidth: '500px', padding: 'var(--space-2xl)' }}>
-        <Moon size={48} className="text-violet" style={{ margin: '0 auto 16px' }} />
-        <h1 style={{ fontSize: '2rem', marginBottom: '12px' }}>Lost Among the Stars</h1>
-        <p style={{ color: 'var(--color-text-muted)', marginBottom: '24px' }}>
-          The celestial pathway you seek does not exist in our astronomical charts.
+    <PageShell timeline="portal" title="Not found — Time Machine">
+      <div
+        className="container"
+        style={{
+          paddingBlock: 'var(--space-10)',
+          display: 'flex',
+          flexDirection: 'column',
+          alignItems: 'center',
+          gap: 'var(--space-4)',
+          textAlign: 'center',
+        }}
+      >
+        <LottieIcon name="compass" size={72} primary="--accent" secondary="--accent-2" />
+
+        <p className="eyebrow">Off the timeline</p>
+        <h1 style={{ fontSize: 'clamp(2.4rem, 1.8rem + 3vw, 4rem)' }}>There is nothing at this moment</h1>
+        <p style={{ color: 'var(--ink-muted)', maxWidth: '46ch' }}>
+          Whatever used to be here has either moved or has not happened yet. Both doors are still open.
         </p>
-        <Link to="/" className="btn-primary">
-          <Compass size={18} /> Return to Sanctuary
-        </Link>
+
+        <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap', justifyContent: 'center', marginTop: 'var(--space-4)' }}>
+          <Link to="/past" className="btn btn-secondary">
+            Time Machine
+          </Link>
+          <Link to="/" className="btn btn-primary">
+            Both doors
+          </Link>
+          <Link to="/future" className="btn btn-secondary">
+            2050
+          </Link>
+        </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

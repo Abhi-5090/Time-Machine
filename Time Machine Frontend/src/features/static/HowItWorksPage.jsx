@@ -1,94 +1,134 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { Compass, Sparkles, Shield, Eye, RefreshCw, Lock, BookOpen } from 'lucide-react';
-import { TiltCard3D } from '../../components/3d/TiltCard3D';
+import { PageShell } from '../../components/layout/PageShell';
+import { SectionHeading, Badge } from '../../components/ui/primitives';
+import { Reveal, RevealGroup, RevealItem } from '../../motion/Reveal';
+import { LottieIcon } from '../../lottie/LottieIcon';
+import { Icon } from '../../components/ui/Icon';
 
-export function HowItWorksPage() {
+const PIPELINE = [
+  {
+    icon: 'scan',
+    title: 'Your answers become a seed',
+    body: 'Name, date, sign and preferences are hashed into a single seed. Every structural decision — archetype, era or habitat, name, role, setting — is a pure function of that seed, which is why the same answers always produce the same life.',
+  },
+  {
+    icon: 'compass',
+    title: 'A skeleton is resolved first',
+    body: 'Before any language model is asked for a sentence, the server has already decided who you are. That keeps readings reproducible, keeps the offline mode consistent with the live one, and means a retry never quietly changes the story.',
+  },
+  {
+    icon: 'hourglass',
+    title: 'The prose is written to that skeleton',
+    body: 'The model receives the resolved facts and a strict brief: imaginative fiction for the past, grounded speculative fiction for 2050, and in both cases explicit instructions never to claim truth about your real life.',
+  },
+  {
+    icon: 'aperture',
+    title: 'The portrait is rendered last',
+    body: 'An image model composes a portrait from the same facts. If you consented to share a photograph, an identity-preserving edit is attempted first so the face stays recognisably yours.',
+  },
+];
+
+const PROMISES = [
+  ['No account', 'There is no sign-up, no password and no email. A reading belongs to whoever holds its link and token.'],
+  ['Photos are opt-in twice', 'Once to consent, once to upload. Without both, nothing is sent.'],
+  ['30-day expiry', 'Readings delete themselves automatically. You can delete one sooner at any time.'],
+  ['Nothing is trained on', 'Your photograph is used to render your portrait and for nothing else.'],
+];
+
+export default function HowItWorksPage() {
   return (
-    <div style={{ padding: 'var(--space-2xl) 0 var(--space-3xl)', position: 'relative' }}>
-      <div className="container" style={{ maxWidth: '860px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 'var(--space-2xl)' }}>
-          <div className="badge badge-gold" style={{ marginBottom: '10px' }}>
-            ✦ The Experience Explained
+    <PageShell
+      timeline="portal"
+      title="How it works — Time Machine"
+      description="What happens between your answers and the chronicle that comes back."
+    >
+      <div className="container" style={{ paddingBlock: 'var(--space-8)' }}>
+        <SectionHeading
+          eyebrow="Under the hood"
+          title="How a life gets written"
+          description="Both doors run the same pipeline. Only the vocabulary, the prompts and the portrait direction differ."
+          align="center"
+        />
+
+        <RevealGroup
+          style={{
+            display: 'grid',
+            gap: 'var(--space-5)',
+            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 280px), 1fr))',
+            marginBlock: 'var(--space-8)',
+          }}
+        >
+          {PIPELINE.map((step, index) => (
+            <RevealItem key={step.title} className="card">
+              <div
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  marginBottom: 'var(--space-4)',
+                }}
+              >
+                <LottieIcon name={step.icon} size={40} primary="--accent" secondary="--accent-2" trigger="visible" />
+                <span style={{ fontFamily: 'var(--font-mono)', fontSize: '0.7rem', color: 'var(--ink-muted)' }}>
+                  {String(index + 1).padStart(2, '0')}
+                </span>
+              </div>
+              <h3 style={{ fontSize: '1.2rem', marginBottom: 'var(--space-3)' }}>{step.title}</h3>
+              <p style={{ color: 'var(--ink-soft)', fontSize: '0.92rem', lineHeight: 1.7 }}>{step.body}</p>
+            </RevealItem>
+          ))}
+        </RevealGroup>
+
+        <Reveal className="card" style={{ padding: 'var(--space-6)' }}>
+          <SectionHeading eyebrow="The deal" title="What we will and will not do" />
+          <ul style={{ marginTop: 'var(--space-5)', display: 'grid', gap: 'var(--space-4)' }}>
+            {PROMISES.map(([title, body]) => (
+              <li key={title} style={{ display: 'grid', gap: 'var(--space-2)' }}>
+                <Badge accent>{title}</Badge>
+                <p style={{ color: 'var(--ink-soft)', fontSize: '0.92rem', lineHeight: 1.7 }}>{body}</p>
+              </li>
+            ))}
+          </ul>
+        </Reveal>
+
+        <Reveal className="card" style={{ marginTop: 'var(--space-6)', padding: 'var(--space-6)' }}>
+          <h2 style={{ fontSize: '1.7rem', marginBottom: 'var(--space-4)' }}>
+            What this is not
+          </h2>
+          <div className="prose" style={{ color: 'var(--ink-soft)', fontSize: '0.96rem' }}>
+            <p>
+              Time Machine does not prove reincarnation, report verified history, or explain anything
+              that has actually happened to you. 2050 is not a forecast, not a prediction, and not
+              advice about your health, money, career or relationships.
+            </p>
+            <p>
+              Both sides are fiction, written to be moving rather than true. They are built never to
+              attribute real suffering to past actions and never to make claims about what your life
+              will contain. If a reading ever reads as though it is telling you something factual
+              about yourself, it has failed at its own brief.
+            </p>
           </div>
-          <h1>How Mystical Past-Life Astrology Works</h1>
-          <p style={{ maxWidth: '620px', margin: '0 auto' }}>
-            An imaginative ritual blending ancient astrology archetypes, symbolic narrative craft, and respectful generative technology.
-          </p>
-        </div>
+        </Reveal>
 
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-xl)', marginBottom: 'var(--space-2xl)' }}>
-          <TiltCard3D
-            intensity={10}
-            glowColor="rgba(255, 215, 0, 0.3)"
-            className="card"
-            style={{ padding: 'var(--space-2xl)' }}
-          >
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '16px', color: 'var(--color-primary-light)' }}>
-              1. The Mystical Zodiac Philosophy
-            </h2>
-            <p style={{ lineHeight: '1.75', marginBottom: '16px' }}>
-              Our application is rooted in a creative product framework called <em>Mystical Zodiac</em>. We do not claim to scientifically predict the future, calculate complex astronomical ephemerides without proper natal charts, or establish factual reincarnation histories.
-            </p>
-            <p style={{ lineHeight: '1.75', marginBottom: 0 }}>
-              Instead, we treat the twelve classical signs—from the daring initiative of Aries to the oceanic intuition of Pisces—as sacred metaphorical mirrors. Your input serves as the creative seed for an evocative story of who a soul carrying those qualities might have been in an ancient or timeless setting.
-            </p>
-          </TiltCard3D>
-
-          <TiltCard3D
-            intensity={10}
-            glowColor="rgba(139, 92, 246, 0.3)"
-            className="card-holographic"
-            style={{ padding: 'var(--space-2xl)' }}
-          >
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '16px', color: 'var(--color-accent-light)' }}>
-              2. Facial Identity Resemblance (Optional)
-            </h2>
-            <p style={{ lineHeight: '1.75', marginBottom: '16px' }}>
-              If you optionally choose to upload a personal photograph, our system utilizes OpenAI’s image editing and reference styling workflows with strict instructions:
-            </p>
-            <div style={{
-              background: 'rgba(10, 15, 45, 0.8)',
-              borderLeft: '4px solid var(--color-primary)',
-              padding: '16px 20px',
-              borderRadius: '0 var(--radius-sm) var(--radius-sm) 0',
-              fontStyle: 'italic',
-              fontSize: '0.94rem',
-              color: '#FFFFFF',
-              marginBottom: '16px',
-              lineHeight: '1.6',
-            }}>
-              “Use the supplied photograph as the identity reference for the same adult person. Preserve their recognizable facial identity, face shape, proportions, skin tone, eyes, nose, lips, and distinctive facial features as closely as possible... Transform the surrounding scene into a cinematic, historically inspired mystical setting.”
-            </div>
-            <p style={{ lineHeight: '1.75', marginBottom: 0 }}>
-              <strong>Important Technical Note:</strong> Generative AI models can vary between runs and cannot guarantee 100% photographic accuracy. We offer previews, regeneration options, and permanent deletion to ensure you remain in complete control.
-            </p>
-          </TiltCard3D>
-
-          <TiltCard3D
-            intensity={10}
-            glowColor="rgba(6, 182, 212, 0.3)"
-            className="card"
-            style={{ padding: 'var(--space-2xl)' }}
-          >
-            <h2 style={{ fontSize: '1.5rem', marginBottom: '16px', color: 'var(--color-cyan-light)' }}>
-              3. Pristine Document & Image Generation
-            </h2>
-            <p style={{ lineHeight: '1.75', marginBottom: '16px' }}>
-              Unlike generic tools that ask AI models to draw paragraphs of text directly onto images (often causing garbled letters or spelling errors), we compose your entire reading report using high-fidelity HTML and CSS typography in our 3D design system.
-            </p>
-            <p style={{ lineHeight: '1.75', marginBottom: 0 }}>
-              When you download your story report as a PNG or PDF, it is rendered sharply in high resolution from the exact validated story data.
-            </p>
-          </TiltCard3D>
-        </div>
-
-        <div style={{ textAlign: 'center' }}>
-          <Link to="/reading/new" className="btn-primary" style={{ padding: '16px 40px', fontSize: '1.1rem' }}>
-            <Compass size={20} /> Begin Your Reading Now
+        <div
+          style={{
+            display: 'flex',
+            gap: 'var(--space-3)',
+            flexWrap: 'wrap',
+            justifyContent: 'center',
+            marginTop: 'var(--space-8)',
+          }}
+        >
+          <Link to="/past/new" className="btn btn-secondary btn-lg">
+            Begin a reading
+          </Link>
+          <Link to="/future/new" className="btn btn-primary btn-lg">
+            Run a projection
+            <Icon name="forward" size={15} />
           </Link>
         </div>
       </div>
-    </div>
+    </PageShell>
   );
 }

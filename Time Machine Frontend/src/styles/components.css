@@ -1,0 +1,967 @@
+/* ==========================================================================
+   UI primitives
+   --------------------------------------------------------------------------
+   Rules that hold everywhere in this file:
+     · never `transition: all` — name the properties
+     · only `transform`, `opacity`, `filter`, `clip-path` and colour animate
+     · every pressable surface scales to 0.97 on :active
+     · hover effects are gated behind (hover: hover) so a tap does not stick
+   ========================================================================== */
+
+/* ── Button ─────────────────────────────────────────────────────────────── */
+
+.btn {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  padding: 13px 24px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-body);
+  font-size: 0.95rem;
+  font-weight: 600;
+  line-height: 1;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  border: 1px solid transparent;
+  transition:
+    transform var(--dur-press) var(--ease-out),
+    background-color var(--dur-fast) var(--ease-soft),
+    border-color var(--dur-fast) var(--ease-soft),
+    color var(--dur-fast) var(--ease-soft),
+    box-shadow var(--dur-fast) var(--ease-soft),
+    opacity var(--dur-fast) var(--ease-soft);
+}
+
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.btn:disabled,
+.btn[aria-disabled='true'] {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.btn-sm {
+  padding: 9px 16px;
+  font-size: 0.85rem;
+}
+
+.btn-lg {
+  padding: 17px 34px;
+  font-size: 1.05rem;
+}
+
+.btn-block {
+  width: 100%;
+}
+
+/* Primary */
+.btn-primary {
+  background: var(--accent);
+  color: var(--accent-contrast);
+  border-color: var(--accent);
+}
+
+/* Secondary — bordered, transparent */
+.btn-secondary {
+  background: transparent;
+  color: var(--ink);
+  border-color: var(--rule-strong);
+}
+
+/* Ghost — text only */
+.btn-ghost {
+  background: transparent;
+  color: var(--ink-soft);
+  border-color: transparent;
+  padding-inline: var(--space-3);
+}
+
+/* Danger */
+.btn-danger {
+  background: transparent;
+  color: var(--color-danger);
+  border-color: color-mix(in srgb, var(--color-danger) 45%, transparent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn-primary:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--accent) 88%, var(--ink));
+  }
+
+  .btn-secondary:hover:not(:disabled) {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .btn-ghost:hover:not(:disabled) {
+    color: var(--ink);
+    background: var(--accent-soft);
+  }
+
+  .btn-danger:hover:not(:disabled) {
+    background: color-mix(in srgb, var(--color-danger) 12%, transparent);
+    border-color: var(--color-danger);
+  }
+}
+
+/* 2050 buttons glow and cut their corner; past buttons stay matte and quiet. */
+[data-timeline='future'] .btn-primary {
+  box-shadow: var(--glow-accent);
+}
+
+[data-timeline='future'] .btn {
+  font-family: var(--font-label);
+  font-size: 0.78rem;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+[data-timeline='future'] .btn-lg {
+  font-size: 0.86rem;
+}
+
+[data-timeline='past'] .btn {
+  font-family: var(--font-label);
+  letter-spacing: 0.08em;
+  font-size: 0.8rem;
+  text-transform: uppercase;
+}
+
+[data-timeline='past'] .btn-lg {
+  font-size: 0.88rem;
+}
+
+/* ── Surfaces ───────────────────────────────────────────────────────────── */
+
+.card {
+  position: relative;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-md);
+  padding: var(--space-5);
+}
+
+[data-timeline='future'] .card {
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+}
+
+.card-raised {
+  background: var(--surface-raised);
+  box-shadow: var(--shadow-md);
+}
+
+.card-inset {
+  background: var(--surface-sunken);
+}
+
+/* The past's primary surface is a sheet of paper, not a glass panel. */
+[data-timeline='past'] .paper {
+  background: var(--surface-raised);
+  border: 1px solid var(--rule);
+  box-shadow: var(--shadow-md);
+  position: relative;
+}
+
+[data-timeline='past'] .paper::after {
+  /* A whisper of fibre so flat beige does not read as "unstyled". */
+  content: '';
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.4;
+  mix-blend-mode: multiply;
+  background-image: radial-gradient(
+    circle at 1px 1px,
+    rgba(110, 86, 52, 0.11) 1px,
+    transparent 0
+  );
+  background-size: 7px 7px;
+}
+
+/* ── Divider ────────────────────────────────────────────────────────────── */
+
+.rule {
+  height: 1px;
+  background: var(--rule);
+  border: 0;
+}
+
+.rule-ornament {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+  color: var(--ink-muted);
+}
+
+.rule-ornament::before,
+.rule-ornament::after {
+  content: '';
+  flex: 1;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--rule-strong), transparent);
+}
+
+/* ── Badge ──────────────────────────────────────────────────────────────── */
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 5px 11px;
+  border-radius: var(--radius-full);
+  border: 1px solid var(--rule-strong);
+  background: var(--accent-soft);
+  color: var(--ink-soft);
+  font-family: var(--font-label);
+  font-size: 0.68rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.badge-accent {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+}
+
+[data-timeline='future'] .badge {
+  border-radius: var(--radius-xs);
+}
+
+/* ── Form fields ────────────────────────────────────────────────────────── */
+
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.field-label {
+  font-family: var(--font-label);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.field-hint {
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+  line-height: 1.5;
+}
+
+.field-error {
+  font-size: 0.82rem;
+  color: var(--color-danger);
+}
+
+.input {
+  width: 100%;
+  padding: 13px 15px;
+  background: var(--surface-sunken);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  color: var(--ink);
+  font-size: 0.98rem;
+  transition:
+    border-color var(--dur-fast) var(--ease-soft),
+    background-color var(--dur-fast) var(--ease-soft),
+    box-shadow var(--dur-fast) var(--ease-soft);
+}
+
+.input::placeholder {
+  color: var(--ink-muted);
+  opacity: 0.75;
+}
+
+.input:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-soft);
+}
+
+.input[aria-invalid='true'] {
+  border-color: var(--color-danger);
+}
+
+select.input {
+  appearance: none;
+  cursor: pointer;
+  padding-right: 42px;
+  background-image: linear-gradient(45deg, transparent 50%, currentColor 50%),
+    linear-gradient(135deg, currentColor 50%, transparent 50%);
+  background-position:
+    calc(100% - 20px) calc(50% + 2px),
+    calc(100% - 15px) calc(50% + 2px);
+  background-size: 5px 5px, 5px 5px;
+  background-repeat: no-repeat;
+}
+
+/* ── Choice cards (radio / checkbox grids) ──────────────────────────────── */
+
+.choice-grid {
+  display: grid;
+  gap: var(--space-3);
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 210px), 1fr));
+}
+
+.choice {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  text-align: left;
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition:
+    transform var(--dur-press) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-soft),
+    background-color var(--dur-fast) var(--ease-soft),
+    color var(--dur-fast) var(--ease-soft);
+}
+
+.choice:active {
+  transform: scale(0.98);
+}
+
+.choice[aria-pressed='true'],
+.choice[data-selected='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+  color: var(--ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .choice:hover {
+    border-color: var(--rule-strong);
+    color: var(--ink);
+  }
+}
+
+.choice-icon {
+  display: inline-grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  margin-bottom: var(--space-1);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--surface-sunken);
+  color: var(--ink-muted);
+  transition:
+    color var(--dur-fast) var(--ease-soft),
+    border-color var(--dur-fast) var(--ease-soft),
+    background-color var(--dur-fast) var(--ease-soft);
+}
+
+.choice[data-selected='true'] .choice-icon {
+  color: var(--accent);
+  border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+  background: var(--accent-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .choice:hover .choice-icon {
+    color: var(--ink);
+    border-color: var(--rule-strong);
+  }
+}
+
+.choice-title {
+  font-family: var(--font-body);
+  font-weight: 600;
+  font-size: 0.95rem;
+  line-height: 1.3;
+  letter-spacing: -0.005em;
+}
+
+[data-timeline='future'] .choice-title {
+  font-weight: 600;
+  letter-spacing: 0;
+}
+
+.choice-note {
+  font-size: 0.8rem;
+  color: var(--ink-muted);
+  line-height: 1.45;
+}
+
+/* The selection tick is drawn, not faded, so the state change is legible. */
+.choice-tick {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 16px;
+  height: 16px;
+  opacity: 0;
+  transform: scale(0.8);
+  color: var(--accent);
+  transition:
+    opacity var(--dur-fast) var(--ease-out),
+    transform var(--dur-fast) var(--ease-out);
+}
+
+.choice[data-selected='true'] .choice-tick {
+  opacity: 1;
+  transform: scale(1);
+}
+
+/* ── Checkbox ───────────────────────────────────────────────────────────── */
+
+.check {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  padding: var(--space-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+  transition:
+    border-color var(--dur-fast) var(--ease-soft),
+    background-color var(--dur-fast) var(--ease-soft);
+}
+
+.check[data-checked='true'] {
+  border-color: var(--accent);
+  background: var(--accent-soft);
+}
+
+.check-box {
+  flex: none;
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border: 1.5px solid var(--rule-strong);
+  border-radius: var(--radius-xs);
+  display: grid;
+  place-items: center;
+  color: var(--accent-contrast);
+  transition:
+    background-color var(--dur-fast) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-out);
+}
+
+.check[data-checked='true'] .check-box {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+
+.check-body {
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+  line-height: 1.55;
+}
+
+.check-title {
+  display: block;
+  font-weight: 600;
+  color: var(--ink);
+  margin-bottom: 2px;
+}
+
+/* ── Progress ───────────────────────────────────────────────────────────── */
+
+.progress {
+  position: relative;
+  height: 3px;
+  width: 100%;
+  background: var(--rule);
+  border-radius: var(--radius-full);
+  overflow: hidden;
+}
+
+.progress-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: left center;
+  background: var(--accent);
+  border-radius: inherit;
+  /* Transitioned rather than keyframed: progress retargets as it arrives. */
+  transition: transform var(--dur-slow) var(--ease-out);
+}
+
+/* ── Dialog ─────────────────────────────────────────────────────────────── */
+
+.dialog-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-overlay);
+  display: grid;
+  place-items: center;
+  padding: var(--gutter);
+  background: color-mix(in srgb, var(--bg-deep) 78%, transparent);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.dialog-panel {
+  width: min(100%, 560px);
+  max-height: min(84dvh, 760px);
+  overflow-y: auto;
+  background: var(--bg-elevated);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-lg);
+  /* Modals are not anchored to a trigger, so they stay centre-origin. */
+  transform-origin: center;
+}
+
+/* ── Toast ──────────────────────────────────────────────────────────────── */
+
+.toast-viewport {
+  position: fixed;
+  bottom: var(--space-5);
+  right: var(--space-5);
+  left: var(--space-5);
+  z-index: var(--z-toast);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-2);
+  pointer-events: none;
+}
+
+.toast {
+  pointer-events: auto;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  width: min(100%, 380px);
+  padding: var(--space-3) var(--space-4);
+  background: var(--bg-elevated);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-lg);
+  font-size: 0.9rem;
+  color: var(--ink-soft);
+}
+
+.toast[data-tone='success'] {
+  border-color: color-mix(in srgb, var(--color-positive) 50%, transparent);
+}
+
+.toast[data-tone='error'] {
+  border-color: color-mix(in srgb, var(--color-danger) 55%, transparent);
+}
+
+/* ── Scroll-driven reveal ───────────────────────────────────────────────── */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity var(--dur-scene) var(--ease-out),
+    transform var(--dur-scene) var(--ease-out);
+}
+
+.reveal[data-visible='true'] {
+  opacity: 1;
+  transform: none;
+}
+
+/* ── Hairline frame used by 2050 panels ─────────────────────────────────── */
+
+[data-timeline='future'] .hud-frame {
+  position: relative;
+}
+
+[data-timeline='future'] .hud-frame::before,
+[data-timeline='future'] .hud-frame::after {
+  content: '';
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  border: 1px solid var(--accent);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+[data-timeline='future'] .hud-frame::before {
+  top: -1px;
+  left: -1px;
+  border-right: 0;
+  border-bottom: 0;
+}
+
+[data-timeline='future'] .hud-frame::after {
+  right: -1px;
+  bottom: -1px;
+  border-left: 0;
+  border-top: 0;
+}
+
+/* ── Link ───────────────────────────────────────────────────────────────── */
+
+.link {
+  color: var(--accent);
+  text-underline-offset: 3px;
+  text-decoration-thickness: 1px;
+  transition: color var(--dur-fast) var(--ease-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .link:hover {
+    text-decoration: underline;
+  }
+}
+
+/* ── Keyboard-visible marker for the active nav item ────────────────────── */
+
+.nav-link {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 2px;
+  font-family: var(--font-body);
+  font-size: 0.86rem;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--ink-muted);
+  transition: color var(--dur-fast) var(--ease-soft);
+}
+
+[data-timeline='future'] .nav-link {
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+/* The icon leads the label and warms to the accent before the text does, so the
+   row reads as responding slightly ahead of the pointer. */
+.nav-link-icon {
+  color: var(--ink-muted);
+  transition:
+    color var(--dur-fast) var(--ease-soft),
+    transform var(--dur-base) var(--ease-out);
+}
+
+.nav-link-active .nav-link-icon {
+  color: var(--accent);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .nav-link:hover .nav-link-icon {
+    color: var(--accent);
+    transform: translateY(-1px);
+  }
+}
+
+.nav-count {
+  min-width: 17px;
+  padding: 1px 5px;
+  border-radius: var(--radius-full);
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 40%, transparent);
+  font-family: var(--font-mono);
+  font-size: 0.64rem;
+  line-height: 1.5;
+  text-align: center;
+  color: var(--accent);
+}
+
+.nav-mobile-link {
+  display: flex;
+  align-items: center;
+  gap: var(--space-3);
+  padding: 14px 0;
+  border-bottom: 1px solid var(--rule);
+  font-size: 0.95rem;
+  color: var(--ink-soft);
+}
+
+.nav-link-active,
+.nav-link:focus-visible {
+  color: var(--ink);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .nav-link:hover {
+    color: var(--ink);
+  }
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--accent);
+  transform: scaleX(0);
+  transform-origin: left center;
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+.nav-link-active::after {
+  transform: scaleX(1);
+}
+
+/* ── Responsive navigation ──────────────────────────────────────────────── */
+
+.nav-mobile-trigger {
+  display: none;
+}
+
+@media (max-width: 1024px) {
+  .nav-desktop {
+    display: none !important;
+  }
+
+  .nav-mobile-trigger {
+    display: inline-flex;
+  }
+}
+
+@media (min-width: 1025px) {
+  .nav-mobile-panel {
+    display: none;
+  }
+}
+
+/* ── Keyframes ──────────────────────────────────────────────────────────── */
+
+@keyframes tm-shimmer {
+  from {
+    background-position: 200% 0;
+  }
+  to {
+    background-position: -200% 0;
+  }
+}
+
+/* A slow breathing glow, used on the 2050 reveal and nowhere a reader waits. */
+@keyframes tm-breathe {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Caret for the 2050 terminal read-outs. */
+@keyframes tm-caret {
+  0%,
+  48% {
+    opacity: 1;
+  }
+  49%,
+  100% {
+    opacity: 0;
+  }
+}
+
+/* Delays the route-loading indicator so a fast navigation shows nothing. */
+@keyframes tm-fallback-in {
+  to {
+    opacity: 1;
+  }
+}
+
+/* Zodiac signs must render as text, never as the platform's colour emoji. */
+.zodiac-glyph {
+  font-variant-emoji: text;
+  font-family: var(--font-display), 'Apple Symbols', 'Segoe UI Symbol', serif;
+}
+
+
+/* ── Footer links ───────────────────────────────────────────────────────── */
+
+.footer-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-3);
+  font-size: 0.88rem;
+  color: var(--ink-muted);
+  transition:
+    color var(--dur-fast) var(--ease-soft),
+    transform var(--dur-base) var(--ease-out);
+}
+
+.footer-link svg {
+  color: var(--ink-muted);
+  transition: color var(--dur-fast) var(--ease-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .footer-link:hover {
+    color: var(--ink);
+    transform: translateX(2px);
+  }
+
+  .footer-link:hover svg {
+    color: var(--accent);
+  }
+}
+
+
+/* ── Backdrop veil ──────────────────────────────────────────────────────── */
+
+.page-scrim {
+  position: fixed;
+  inset: 0;
+  z-index: var(--z-backdrop);
+  pointer-events: none;
+}
+
+/* The past's backdrop is already quiet; it only needs the edges settling. */
+[data-timeline='past'] .page-scrim {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg) 55%, transparent) 0%,
+    color-mix(in srgb, var(--bg) 25%, transparent) 40%,
+    color-mix(in srgb, var(--bg) 55%, transparent) 100%
+  );
+}
+
+/* 2050 needs a real veil so the grid cannot compete with a form label. */
+[data-timeline='future'] .page-scrim,
+[data-timeline='portal'] .page-scrim {
+  background: linear-gradient(
+    180deg,
+    color-mix(in srgb, var(--bg-deep) 72%, transparent) 0%,
+    color-mix(in srgb, var(--bg-deep) 82%, transparent) 45%,
+    color-mix(in srgb, var(--bg-deep) 88%, transparent) 100%
+  );
+}
+
+/* ==========================================================================
+   The warp
+   --------------------------------------------------------------------------
+   Light from the gate's core, used to cover a route change end to end. It sits
+   above everything including toasts, because the one thing it must never do is
+   let the swap show through.
+   ========================================================================== */
+
+.warp {
+  position: fixed;
+  inset: 0;
+  z-index: 900;
+  display: none;
+  opacity: 0;
+  pointer-events: none;
+  contain: strict;
+}
+
+.warp-core,
+.warp-streaks {
+  position: absolute;
+  left: var(--warp-x, 50%);
+  top: var(--warp-y, 46%);
+  translate: -50% -50%;
+  border-radius: 50%;
+  will-change: transform, opacity;
+}
+
+/* The core's white centre is what actually covers the screen: scaled up, the
+   opaque middle of the gradient is many times the viewport. */
+.warp-core {
+  width: 34vmin;
+  aspect-ratio: 1;
+  background: radial-gradient(
+    circle closest-side,
+    #ffffff 0%,
+    #fff3dc 24%,
+    #ffc98c 42%,
+    rgba(178, 120, 255, 0.5) 66%,
+    rgba(10, 15, 40, 0) 78%
+  );
+}
+
+.warp[data-tone='future'] .warp-core {
+  background: radial-gradient(
+    circle closest-side,
+    #ffffff 0%,
+    #e4fbff 22%,
+    #6fe3ff 44%,
+    rgba(124, 58, 237, 0.48) 68%,
+    rgba(4, 7, 14, 0) 80%
+  );
+}
+
+/* Spokes of light thrown past the camera as it enters, which is what sells the
+   movement as travel rather than as a fade to white. */
+.warp-streaks {
+  width: 150vmax;
+  aspect-ratio: 1;
+  opacity: 0;
+  mix-blend-mode: screen;
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 255, 255, 0) 0deg 3deg,
+    rgba(255, 236, 205, 0.5) 3.6deg,
+    rgba(255, 255, 255, 0) 4.4deg 8deg
+  );
+  -webkit-mask-image: radial-gradient(circle closest-side, transparent 0 6%, #000 26%, transparent 62%);
+  mask-image: radial-gradient(circle closest-side, transparent 0 6%, #000 26%, transparent 62%);
+}
+
+.warp[data-tone='future'] .warp-streaks {
+  background: repeating-conic-gradient(
+    from 0deg,
+    rgba(255, 255, 255, 0) 0deg 3deg,
+    rgba(206, 246, 255, 0.5) 3.6deg,
+    rgba(255, 255, 255, 0) 4.4deg 8deg
+  );
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .warp {
+    display: none !important;
+  }
+}
+
+/* The way back to the threshold. Given its own treatment so it reads as an
+   exit from the timeline rather than as one more navigation item. */
+.nav-back {
+  gap: 8px;
+}
+
+.nav-back svg {
+  transition: transform var(--dur-base) var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .nav-back:hover svg {
+    transform: translateX(-3px);
+  }
+}
+
+/* Says outright that a portrait is a stand-in. A placeholder presented without
+   comment is indistinguishable from a bad result. */
+.portrait-placeholder-note {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-2);
+  margin-top: var(--space-3);
+  padding: var(--space-3);
+  border: 1px solid color-mix(in srgb, var(--color-caution) 45%, transparent);
+  border-radius: var(--radius-sm);
+  background: color-mix(in srgb, var(--color-caution) 10%, transparent);
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.portrait-placeholder-note svg {
+  margin-top: 2px;
+  color: var(--color-caution);
+}

@@ -1,12 +1,13 @@
 {
-  "name": "mystical-astrology-backend",
+  "name": "time-machine-backend",
   "version": "1.0.0",
   "type": "module",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/server.js",
     "dev": "nodemon src/server.js",
-    "test": "vitest run"
+    "test": "vitest run",
+    "doctor": "node scripts/doctor.mjs"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -24,5 +25,9 @@
     "nodemon": "^3.1.7",
     "supertest": "^7.0.0",
     "vitest": "^2.1.3"
+  },
+  "description": "API for both timelines: past-life chronicles and 2050 projections",
+  "engines": {
+    "node": ">=20 <23"
   }
 }

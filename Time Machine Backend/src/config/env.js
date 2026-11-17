@@ -10,13 +10,26 @@ const API_BASE_PATH = process.env.API_BASE_PATH || '/api/v1';
 const AI_PROVIDER_MODE = (process.env.AI_PROVIDER_MODE || 'mock').toLowerCase();
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 const OPENAI_TEXT_MODEL = process.env.OPENAI_TEXT_MODEL || 'gpt-4o-mini';
-const OPENAI_IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'dall-e-3';
+const OPENAI_IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1';
+const OPENAI_IMAGE_SIZE = process.env.OPENAI_IMAGE_SIZE || '1024x1536';
 
 const STORAGE_PROVIDER = process.env.STORAGE_PROVIDER || 'local';
 const MAX_UPLOAD_BYTES = parseInt(process.env.MAX_UPLOAD_BYTES, 10) || 5 * 1024 * 1024;
 const READING_RETENTION_DAYS = parseInt(process.env.READING_RETENTION_DAYS, 10) || 30;
+// Read budget. Sized for status polling (~35 requests per reading generated),
+// so a shared IP at a venue is not locked out by ordinary use.
 const RATE_LIMIT_WINDOW_MS = parseInt(process.env.RATE_LIMIT_WINDOW_MS, 10) || 15 * 60 * 1000;
-const RATE_LIMIT_MAX_REQUESTS = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 60;
+const RATE_LIMIT_MAX_REQUESTS = parseInt(process.env.RATE_LIMIT_MAX_REQUESTS, 10) || 1200;
+
+// Generation budget. This is the call that spends provider credits.
+const CREATION_RATE_LIMIT_WINDOW_MS =
+  parseInt(process.env.CREATION_RATE_LIMIT_WINDOW_MS, 10) || 5 * 60 * 1000;
+const CREATION_RATE_LIMIT_MAX = parseInt(process.env.CREATION_RATE_LIMIT_MAX, 10) || 20;
+
+// Upload budget.
+const UPLOAD_RATE_LIMIT_WINDOW_MS =
+  parseInt(process.env.UPLOAD_RATE_LIMIT_WINDOW_MS, 10) || 5 * 60 * 1000;
+const UPLOAD_RATE_LIMIT_MAX = parseInt(process.env.UPLOAD_RATE_LIMIT_MAX, 10) || 20;
 
 // Validate configuration
 export function validateConfig() {
@@ -48,9 +61,14 @@ export const config = {
   OPENAI_API_KEY,
   OPENAI_TEXT_MODEL,
   OPENAI_IMAGE_MODEL,
+  OPENAI_IMAGE_SIZE,
   STORAGE_PROVIDER,
   MAX_UPLOAD_BYTES,
   READING_RETENTION_DAYS,
   RATE_LIMIT_WINDOW_MS,
   RATE_LIMIT_MAX_REQUESTS,
+  CREATION_RATE_LIMIT_WINDOW_MS,
+  CREATION_RATE_LIMIT_MAX,
+  UPLOAD_RATE_LIMIT_WINDOW_MS,
+  UPLOAD_RATE_LIMIT_MAX,
 };

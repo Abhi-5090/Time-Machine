@@ -1,0 +1,21 @@
+{
+  "$schema": "https://openapi.vercel.sh/vercel.json",
+  "rewrites": [
+    {
+      "comment": "Proxy the API through this origin so the browser never makes a cross-origin call. Replace the host with your Render URL.",
+      "source": "/api/:path*",
+      "destination": "https://time-machine-api.onrender.com/api/:path*"
+    },
+    {
+      "comment": "Client-side routing: every other path serves the app shell.",
+      "source": "/((?!assets/).*)",
+      "destination": "/index.html"
+    }
+  ],
+  "headers": [
+    {
+      "source": "/assets/(.*)",
+      "headers": [{ "key": "Cache-Control", "value": "public, max-age=31536000, immutable" }]
+    }
+  ]
+}

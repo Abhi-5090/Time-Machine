@@ -164,4 +164,150 @@ export class MockImageProvider extends ImageProvider {
     const saved = await StorageService.saveGeneratedPortrait(svg, '.svg', 'image/svg+xml');
     return saved;
   }
+
+  /**
+   * Offline stand-in for the 2050 portrait: a HUD-framed composition in the
+   * future palette so the results screen looks correct without an API key.
+   */
+  async generateFuturePortrait(futureProfile, preferences, referenceAssetId = null) {
+    console.log(
+      `[MockImageProvider] Generating 2050 portrait for: ${futureProfile.personaName} (${futureProfile.archetypeName})`
+    );
+
+    const name = futureProfile.personaName || 'Unregistered Signal';
+    const role = futureProfile.roleTitle || 'Operator';
+    const habitat = futureProfile.habitatName || 'The Vertical Metropolis';
+    const hasPhoto = Boolean(referenceAssetId);
+
+    const esc = (value) =>
+      String(value).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+
+    // Deterministic skyline so the same reading always renders the same city.
+    let seed = 0;
+    for (const char of `${name}${role}`) seed = (seed * 31 + char.charCodeAt(0)) >>> 0;
+    const nextRandom = () => {
+      seed = (seed * 1664525 + 1013904223) >>> 0;
+      return seed / 0xffffffff;
+    };
+
+    const towers = Array.from({ length: 26 }, (_, i) => {
+      const w = 18 + nextRandom() * 36;
+      const x = i * 32 - 10;
+      const h = 120 + nextRandom() * 430;
+      const opacity = (0.18 + nextRandom() * 0.4).toFixed(2);
+      const lights = Array.from({ length: Math.floor(h / 48) }, (_, row) => {
+        const ly = 1000 - h + 20 + row * 44;
+        return `<rect x="${(x + 6).toFixed(1)}" y="${ly.toFixed(1)}" width="${(w - 12).toFixed(1)}" height="3" fill="#5EF2FF" opacity="${(0.25 + nextRandom() * 0.55).toFixed(2)}" />`;
+      }).join('');
+      return `<g><rect x="${x.toFixed(1)}" y="${(1000 - h).toFixed(1)}" width="${w.toFixed(1)}" height="${h.toFixed(1)}" fill="#0B1424" opacity="${opacity}" />${lights}</g>`;
+    }).join('');
+
+    const scanlines = Array.from(
+      { length: 125 },
+      (_, i) => `<rect x="0" y="${i * 8}" width="800" height="1" fill="#5EF2FF" opacity="0.04" />`
+    ).join('');
+
+    const svg = `<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 1000" width="800" height="1000">
+  <defs>
+    <linearGradient id="voidGrad" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#050A16" />
+      <stop offset="45%" stop-color="#071326" />
+      <stop offset="100%" stop-color="#03060D" />
+    </linearGradient>
+    <radialGradient id="horizonGlow" cx="50%" cy="72%" r="60%">
+      <stop offset="0%" stop-color="#1BE3FF" stop-opacity="0.34" />
+      <stop offset="55%" stop-color="#7C3AED" stop-opacity="0.14" />
+      <stop offset="100%" stop-color="#7C3AED" stop-opacity="0" />
+    </radialGradient>
+    <linearGradient id="figureGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#17304F" />
+      <stop offset="60%" stop-color="#0A1A2E" />
+      <stop offset="100%" stop-color="#05101C" />
+    </linearGradient>
+    <linearGradient id="rimLight" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#FF2E9A" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#5EF2FF" stop-opacity="0.9" />
+    </linearGradient>
+    <filter id="bloom" x="-20%" y="-20%" width="140%" height="140%">
+      <feGaussianBlur stdDeviation="5" result="b" />
+      <feComposite in="SourceGraphic" in2="b" operator="over" />
+    </filter>
+  </defs>
+
+  <rect width="800" height="1000" fill="url(#voidGrad)" />
+  <g opacity="0.55">${towers}</g>
+  <rect width="800" height="1000" fill="url(#horizonGlow)" />
+
+  <!-- Subject: a clean head-and-shoulders silhouette with a single rim light.
+       Kept geometric on purpose — this stands in for the generated portrait
+       when no provider key is configured, so it should read as a deliberate
+       placeholder rather than as a failed render. -->
+  <g>
+    <!-- Shoulders -->
+    <path d="M214 780 q0 -186 186 -202 q186 16 186 202 z" fill="url(#figureGrad)" />
+    <!-- Neck -->
+    <rect x="368" y="470" width="64" height="70" rx="26" fill="url(#figureGrad)" />
+    <!-- Head -->
+    <ellipse cx="400" cy="372" rx="104" ry="126" fill="url(#figureGrad)" />
+
+    <!-- Rim light. The arcs share the head ellipse's own radii and endpoints,
+         so the highlight sits exactly on the silhouette edge. -->
+    <path d="M400 246 A104 126 0 0 1 400 498" fill="none" stroke="#5EF2FF" stroke-width="5"
+          stroke-linecap="round" opacity="0.9" />
+    <path d="M400 578 q186 16 186 202" fill="none" stroke="#5EF2FF" stroke-width="4"
+          stroke-linecap="round" opacity="0.45" />
+    <!-- Cooler fill light on the opposite edge -->
+    <path d="M400 246 A104 126 0 0 0 400 498" fill="none" stroke="#FF2E9A" stroke-width="3"
+          stroke-linecap="round" opacity="0.38" />
+
+    <!-- Worn tech: a temple band and a collar status light -->
+    <rect x="352" y="330" width="96" height="6" rx="3" fill="#5EF2FF" opacity="0.9" />
+    <circle cx="462" cy="356" r="5" fill="#FF2E9A" />
+    <rect x="356" y="556" width="88" height="4" rx="2" fill="#5EF2FF" opacity="0.55" />
+    <circle cx="400" cy="604" r="7" fill="none" stroke="#5EF2FF" stroke-width="2" opacity="0.6" />
+  </g>
+
+  <!-- HUD frame -->
+  <g stroke="#5EF2FF" fill="none" opacity="0.7">
+    <path d="M46 46 h72 M46 46 v72" stroke-width="2.5" />
+    <path d="M754 46 h-72 M754 46 v72" stroke-width="2.5" />
+    <path d="M46 954 h72 M46 954 v-72" stroke-width="2.5" />
+    <path d="M754 954 h-72 M754 954 v-72" stroke-width="2.5" />
+    <rect x="46" y="46" width="708" height="908" stroke-width="1" opacity="0.25" />
+  </g>
+
+  <g opacity="0.5">
+    <circle cx="400" cy="372" r="186" stroke="#5EF2FF" stroke-width="1" fill="none" stroke-dasharray="3 9" opacity="0.45" />
+    <circle cx="400" cy="372" r="232" stroke="#7C3AED" stroke-width="1" fill="none" stroke-dasharray="1 14" opacity="0.4" />
+  </g>
+
+  ${scanlines}
+
+  <g>
+    <rect x="46" y="806" width="708" height="1" fill="#5EF2FF" opacity="0.35" />
+    <text x="72" y="784" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#5EF2FF" letter-spacing="4" opacity="0.8">
+      SIGNAL // 2050
+    </text>
+    <text x="400" y="858" text-anchor="middle" font-family="ui-sans-serif, system-ui, sans-serif" font-size="38" font-weight="700" fill="#EAF6FF" letter-spacing="1">
+      ${esc(name.toUpperCase())}
+    </text>
+    <text x="400" y="890" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" fill="#9FD8EA" letter-spacing="3">
+      ${esc(role.toUpperCase())}
+    </text>
+    <text x="400" y="916" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="12" fill="#6F8FA8" letter-spacing="3">
+      ${esc(habitat.toUpperCase())}
+    </text>
+    ${
+      hasPhoto
+        ? `<text x="400" y="940" text-anchor="middle" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="10" fill="#FF2E9A" letter-spacing="2">
+             IDENTITY REFERENCE LOCKED
+           </text>`
+        : ''
+    }
+  </g>
+</svg>`;
+
+    return StorageService.saveGeneratedPortrait(svg, '.svg', 'image/svg+xml');
+  }
 }

@@ -2,6 +2,8 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 import { v4 as uuidv4 } from 'uuid';
+import { Asset } from '../models/Asset.js';
+import { config } from '../config/env.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,6 +53,41 @@ export function validateImageMagicBytes(buffer) {
   return false;
 }
 
+/** True when assets belong in the database rather than on the local disk. */
+function usingDatabase() {
+  return config.STORAGE_PROVIDER === 'mongodb';
+}
+
+/** Asset ids are generated, never supplied — but they do reach a path join. */
+function isSafeAssetId(assetId) {
+  return typeof assetId === 'string' && /^(ref|prt)_[a-f0-9-]{36}$/i.test(assetId);
+}
+
+const MIME_BY_EXT = {
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.webp': 'image/webp',
+  '.svg': 'image/svg+xml',
+};
+
+/**
+ * Normalises whatever the driver hands back into a Node Buffer.
+ *
+ * A lean query returns a BSON Binary rather than a Buffer, and a Binary has no
+ * `.length` — which silently produces an invalid Content-Length header instead
+ * of an obvious failure.
+ */
+function toBuffer(value) {
+  if (Buffer.isBuffer(value)) return value;
+  if (value?.buffer) return Buffer.from(value.buffer);
+  return Buffer.from(value);
+}
+
+function mimeFromPath(filePath) {
+  return MIME_BY_EXT[path.extname(filePath).toLowerCase()] || 'application/octet-stream';
+}
+
 export class StorageService {
   /**
    * Save an uploaded reference photo buffer after magic-byte validation.
@@ -67,6 +104,17 @@ export class StorageService {
 
     const ext = verifiedMime === 'image/jpeg' ? '.jpg' : verifiedMime === 'image/png' ? '.png' : '.webp';
     const assetId = `ref_${uuidv4()}`;
+
+    if (usingDatabase()) {
+      await Asset.create({
+        assetId,
+        kind: 'reference',
+        mimeType: verifiedMime,
+        bytes: buffer,
+        size: buffer.length,
+      });
+      return { assetId, filename: assetId, mimeType: verifiedMime };
+    }
     const filename = `${assetId}${ext}`;
     const filePath = path.join(REFERENCES_DIR, filename);
 
@@ -86,6 +134,12 @@ export class StorageService {
    */
   static async saveGeneratedPortrait(content, ext = '.png', mimeType = 'image/png') {
     const assetId = `prt_${uuidv4()}`;
+
+    if (usingDatabase()) {
+      const bytes = Buffer.isBuffer(content) ? content : Buffer.from(content);
+      await Asset.create({ assetId, kind: 'portrait', mimeType, bytes, size: bytes.length });
+      return { assetId, filename: assetId, mimeType };
+    }
     const filename = `${assetId}${ext}`;
     const filePath = path.join(PORTRAITS_DIR, filename);
 
@@ -106,50 +160,66 @@ export class StorageService {
   /**
    * Get file path for a reference asset ID.
    */
+  /**
+   * Reads an asset's bytes, wherever they live.
+   *
+   * The two call sites that need the actual content — serving a portrait and
+   * handing a reference photo to the image provider — go through this instead
+   * of touching the filesystem, so the storage backend is swappable.
+   */
+  static async read(assetId, kind) {
+    if (usingDatabase()) {
+      const asset = await Asset.findOne({ assetId, kind }).lean();
+      if (!asset) return null;
+      return { buffer: toBuffer(asset.bytes), mimeType: asset.mimeType };
+    }
+
+    const filePath = this.#localPath(assetId, kind);
+    if (!filePath || !fs.existsSync(filePath)) return null;
+    return { buffer: fs.readFileSync(filePath), mimeType: mimeFromPath(filePath) };
+  }
+
+  static readReference(assetId) {
+    return this.read(assetId, 'reference');
+  }
+
+  static readPortrait(assetId) {
+    return this.read(assetId, 'portrait');
+  }
+
+  /** Resolves an asset to a path on disk. Local storage only. */
+  static #localPath(assetId, kind) {
+    const dir = kind === 'portrait' ? PORTRAITS_DIR : REFERENCES_DIR;
+    if (!isSafeAssetId(assetId)) return null;
+    const match = fs.existsSync(dir) && fs.readdirSync(dir).find((name) => name.startsWith(assetId));
+    return match ? path.join(dir, match) : null;
+  }
+
   static getReferencePath(assetId) {
-    if (!assetId || typeof assetId !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(assetId)) {
-      return null;
-    }
-
-    const files = fs.readdirSync(REFERENCES_DIR);
-    const matched = files.find((f) => f.startsWith(assetId));
-    return matched ? path.join(REFERENCES_DIR, matched) : null;
+    return usingDatabase() ? null : this.#localPath(assetId, 'reference');
   }
 
-  /**
-   * Get file path for a portrait asset ID.
-   */
   static getPortraitPath(assetId) {
-    if (!assetId || typeof assetId !== 'string' || !/^[a-zA-Z0-9_-]+$/.test(assetId)) {
-      return null;
-    }
-
-    const files = fs.readdirSync(PORTRAITS_DIR);
-    const matched = files.find((f) => f.startsWith(assetId));
-    return matched ? path.join(PORTRAITS_DIR, matched) : null;
+    return usingDatabase() ? null : this.#localPath(assetId, 'portrait');
   }
 
-  /**
-   * Delete reference photo by asset ID.
-   */
   static async deleteReferencePhoto(assetId) {
-    const filePath = this.getReferencePath(assetId);
-    if (filePath && fs.existsSync(filePath)) {
-      await fs.promises.unlink(filePath);
-      return true;
-    }
-    return false;
+    return this.#remove(assetId, 'reference');
   }
 
-  /**
-   * Delete portrait by asset ID.
-   */
   static async deletePortrait(assetId) {
-    const filePath = this.getPortraitPath(assetId);
-    if (filePath && fs.existsSync(filePath)) {
-      await fs.promises.unlink(filePath);
-      return true;
+    return this.#remove(assetId, 'portrait');
+  }
+
+  static async #remove(assetId, kind) {
+    if (usingDatabase()) {
+      const result = await Asset.deleteOne({ assetId, kind });
+      return result.deletedCount > 0;
     }
-    return false;
+
+    const filePath = this.#localPath(assetId, kind);
+    if (!filePath) return false;
+    await fs.promises.unlink(filePath).catch(() => {});
+    return true;
   }
 }

@@ -1,244 +1,198 @@
-# Mystical Past-Life Astrology
+# Time Machine
 
-An imaginative, astrology-inspired storytelling experience that weaves personalized fictional past-life chronicles, soul archetypes, and cinematic character portraits.
+Two doors. One takes you back; one takes you to 2050.
 
-Users explore who they might imagine themselves to have been in another era, with the option to upload a reference photograph to preserve their recognizable facial identity in the generated portrait. Readings can be downloaded as high-resolution PNG image reports or exported as paginated PDFs.
+**Time Machine** writes you an imaginative, astrology-inspired chronicle of a life you might have
+lived, and paints a portrait of the person who lived it. **2050** does the same thing pointed the
+other way: a grounded piece of speculative fiction about one life twenty-five years from now, with a
+portrait to match.
 
----
-
-## ✦ Key Features
-
-1. **Mystical Zodiac Interpretation Engine**:
-   - Deterministic Western Tropical Sun sign derivation from birth dates.
-   - Intelligent sign mismatch resolution (keeps user's choice as a symbolic preference without overriding).
-   - 8 Curated Soul Archetypes: *The Sage, The Guardian, The Healer, The Ruler, The Seeker, The Artist, The Diplomat, and The Wanderer*.
-   - Structured character profile generator linking zodiac themes, historical eras, occupations, core conflicts, and relationships.
-
-2. **Official OpenAI Provider Integration**:
-   - Server-side integration using the official OpenAI SDK.
-   - Configurable text and image model IDs via environment variables (`OPENAI_TEXT_MODEL`, `OPENAI_IMAGE_MODEL`).
-   - Strict validation: API keys remain exclusively on the backend and are never sent to the client, logs, or Git.
-   - Built-in, high-fidelity deterministic offline Mock Mode for local development without API credentials.
-
-3. **Facial Identity Preservation (Highest Priority)**:
-   - Optional reference photo upload with explicit, separate user consent.
-   - Validates MIME types, file sizes (max 5 MB), and image magic bytes (JPEG, PNG, WebP).
-   - In live mode with reference photo, passes image to OpenAI image workflow with strict identity-preservation instructions:
-     > *"Use the supplied photograph as the identity reference for the same adult person. Preserve their recognizable facial identity, face shape, proportions, skin tone, eyes, nose, lips, and distinctive facial features as closely as possible..."*
-   - Honest user guidance: generative AI resemblance can vary between runs; includes preview, retry, and discard options.
-   - Complete privacy: original user photograph is kept private and never published or shared.
-
-4. **High-Resolution Story Report Artifact (PNG & PDF Export)**:
-   - **Mandatory Text-Rendering Rule Adherence**: The report text is rendered using HTML and CSS in the browser rather than an AI image generator, ensuring sharp, correctly spelled typography.
-   - Includes hero portrait, character title, archetype badge, chronicle chapters, symbolic karmic themes, reflection prompt, and readable entertainment disclaimer.
-   - One-click export to 2x DPI high-resolution PNG (`html-to-image`) and print-ready PDF (`jspdf`).
-
-5. **Celestial Royalty Design System**:
-   - Centralized semantic CSS variables based on the approved palette:
-     - Midnight Indigo: `#0B1026`
-     - Deep Surface: `#191F3A`
-     - Elevated Indigo: `#222945`
-     - Antique Gold: `#D4AF65`
-     - Mystic Violet: `#7662B8`
-     - Starlight Ivory: `#F4EFE4`
-     - Moonlight: `#B8BBD0`
-     - Muted Indigo Border: `#343B5A`
-     - Deep Ink: `#171526`
-     - Celestial Sage: `#78B89A`
-     - Solar Amber: `#E5B86A`
-     - Rose Ember: `#E27D86`
-
-6. **Privacy & Security**:
-   - Anonymous reading ownership tokens (`X-Reading-Token`).
-   - Rate limiting on generation and upload endpoints.
-   - Helmet security headers and CORS origin allowlists.
-   - Immediate permanent deletion of readings and uploaded photographs.
-   - Prominent entertainment disclaimers: never presents narratives as factual reincarnation or blames suffering on past-life karma.
+Both are fiction. Neither is a prediction.
 
 ---
 
-## ✦ Project Structure
+## Quick start
 
-```text
-Time Machine/
-├── package.json                         # Root workspace orchestration
-├── .gitignore                           # Git ignore rules for node_modules, .env, uploads
-├── README.md                            # Complete setup and operational guide
-├── Antigravity_Mystical_Astrology_Spec.md # Primary specification
-│
-├── Time Machine Backend/
-│   ├── package.json
-│   ├── .env.example                     # Safe environment template
-│   ├── .gitignore
-│   ├── src/
-│   │   ├── server.js                    # HTTP entry point & graceful shutdown
-│   │   ├── app.js                       # Express configuration & security middleware
-│   │   ├── config/
-│   │   │   ├── env.js                   # Environment validation & error handling
-│   │   │   └── database.js              # MongoDB Mongoose connection
-│   │   ├── constants/
-│   │   │   ├── zodiac.js                # 12 Western Tropical signs, themes & boundaries
-│   │   │   └── archetypes.js            # 8 Soul archetypes, roles & visual motifs
-│   │   ├── models/
-│   │   │   ├── UserProfile.js           # Minimal, privacy-first profile schema
-│   │   │   ├── Reading.js               # Full reading state, chronicle & portrait links
-│   │   │   └── GenerationJob.js         # Multi-stage asynchronous job tracker
-│   │   ├── routes/
-│   │   │   ├── health.routes.js         # Health check and DB status
-│   │   │   ├── zodiac.routes.js         # Sign calculation & mismatch validation
-│   │   │   ├── reading.routes.js        # Create, poll, retry, delete reading
-│   │   │   └── portrait.routes.js       # Reference upload & authorized portrait serving
-│   │   ├── controllers/                 # Route handlers
-│   │   ├── middleware/
-│   │   │   ├── auth.js                  # Anonymous reading ownership verification
-│   │   │   ├── errorHandler.js          # Centralized error mapping & secret redaction
-│   │   │   ├── rateLimiter.js           # Rate limiting for generation & uploads
-│   │   │   ├── requestId.js             # UUID request tracking
-│   │   │   └── validate.js              # Joi schema validation
-│   │   ├── services/
-│   │   │   ├── zodiac.service.js        # Boundary date calculation & mismatch logic
-│   │   │   ├── interpretation.service.js# Deterministic archetype & character builder
-│   │   │   ├── reading.service.js       # Reading lifecycle orchestration
-│   │   │   ├── storage.service.js       # Private local file storage with magic bytes
-│   │   │   └── prompt.service.js        # Facial preservation & story prompts
-│   │   └── providers/
-│   │       ├── text/
-│   │       │   ├── TextProvider.js      # Base text interface
-│   │       │   ├── OpenAITextProvider.js# Live GPT-4o-mini structured JSON generation
-│   │       │   └── MockTextProvider.js  # Rich offline deterministic story generator
-│   │       └── image/
-│   │           ├── ImageProvider.js     # Base image interface
-│   │           ├── OpenAIImageProvider.js# Live DALL-E-3 / image edit with identity prompt
-│   │           └── MockImageProvider.js # Procedural celestial SVG portrait generator
-│   └── tests/
-│       ├── zodiac.test.js               # Unit tests for zodiac dates & mismatches
-│       ├── interpretation.test.js       # Unit tests for character profiling
-│       ├── api.test.js                  # Integration tests for routes & middleware
-│       └── integration.test.js          # End-to-end reading creation & deletion test
-│
-└── Time Machine Frontend/
-    ├── package.json
-    ├── vite.config.js                   # Vite config with API proxy
-    ├── index.html                       # HTML shell with Google Fonts
-    └── src/
-        ├── main.jsx                     # React entry point
-        ├── App.jsx                      # App shell with Navbar & Footer
-        ├── router.jsx                   # React Router route definitions
-        ├── styles/
-        │   ├── tokens.css               # Exact Celestial Royalty palette & tokens
-        │   ├── global.css               # Typography, focus states, resets
-        │   └── utilities.css            # Buttons, cards, badges, grids
-        ├── components/
-        │   ├── common/Navbar.jsx        # Navigation header with live/mock status badge
-        │   ├── common/Footer.jsx        # Footer with entertainment disclaimer & links
-        │   └── report/StoryReport.jsx   # High-resolution PNG & PDF report exporter
-        ├── features/
-        │   ├── landing/LandingPage.jsx  # Hero, How It Works, Sample Preview, Privacy Trust
-        │   ├── onboarding/OnboardingWizard.jsx # 5-step wizard with real-time mismatch handling
-        │   ├── reveal/RevealScreen.jsx  # Multi-stage live job polling & astrolabe spinner
-        │   ├── results/ResultsPage.jsx  # Results page with portrait, chapters, themes, reflection
-        │   └── static/                  # How It Works, Privacy Policy, Terms, 404
-        ├── services/api.js              # Centralized API client with token storage
-        └── test/
-            ├── setup.js
-            ├── Onboarding.test.jsx
-            └── StoryReport.test.jsx
-```
-
----
-
-## ✦ Installation and Run Commands
-
-### Prerequisites
-- **Node.js**: v18.0.0 or later (v20+ recommended)
-- **npm**: v9.0.0 or later
-- **MongoDB**: Local MongoDB instance (`mongodb://127.0.0.1:27017`) or MongoDB Atlas connection string.
-
-### 1. Install All Dependencies
-From the repository root:
 ```bash
-npm run install:all
+npm run install:all                     # install backend + frontend
+cp "Time Machine Backend/.env.example" "Time Machine Backend/.env"
+npm run dev                             # backend :5000, frontend :5173
 ```
 
-### 2. Configure Backend Environment
-Navigate to `Time Machine Backend` and copy the example environment file:
-```bash
-cd "Time Machine Backend"
-cp .env.example .env
-```
-*(By default, `AI_PROVIDER_MODE=mock` is enabled, allowing the application to run offline without an OpenAI key).*
+Out of the box `AI_PROVIDER_MODE=mock`, so the whole product works offline with no API key and no
+network: the narratives come from a local provider and the portraits are generated as SVG. Set
+`AI_PROVIDER_MODE=openai` and `OPENAI_API_KEY` to switch both timelines to live generation.
 
-### 3. Run Development Servers
-From the repository root, run both backend and frontend concurrently:
-```bash
-npm run dev
-```
+MongoDB is optional in development — the server logs a warning and keeps running without it, though
+readings will not persist.
 
-Alternatively, run each service in separate terminal windows:
-- **Backend**:
-  ```bash
-  cd "Time Machine Backend"
-  npm run dev
-  ```
-  *(Starts Express server on `http://localhost:5000`)*
+### Scripts
 
-- **Frontend**:
-  ```bash
-  cd "Time Machine Frontend"
-  npm run dev
-  ```
-  *(Starts Vite dev server on `http://localhost:5173`)*
+| Command | What it does |
+| --- | --- |
+| `npm run dev` | Backend and frontend together |
+| `npm run build` | Production frontend build |
+| `npm test` | Backend (26) + frontend (40) tests |
+| `npm run dev:backend` / `dev:frontend` | One side at a time |
+
+The frontend dev server proxies `/api` to `http://localhost:5000`; override with
+`VITE_API_TARGET` if the backend is on another port.
 
 ---
 
-## ✦ Secure OpenAI API Configuration
+## How a reading is made
 
-To enable live OpenAI generation:
+Both timelines run the same four-stage pipeline, and the stages are published by the API so the
+reveal screen narrates what the server is actually doing rather than faking progress.
 
-1. Open `Time Machine Backend/.env`.
-2. Configure these variables:
-   ```env
-   AI_PROVIDER_MODE=openai
-   OPENAI_API_KEY=sk-proj-your-actual-openai-api-key-here
-   OPENAI_TEXT_MODEL=gpt-4o-mini
-   OPENAI_IMAGE_MODEL=dall-e-3
-   ```
-3. Restart the backend server. The health route (`/api/v1/health`) and the frontend navigation bar will display `✦ Live AI`.
+1. **Seed.** Every answer is hashed into one seed. Archetype, era or habitat, name, role, setting and
+   the signal read-out are all pure functions of it, so the same answers always produce the same
+   life, a retry never changes the story, and the mock and live providers agree on the facts.
+2. **Skeleton.** `InterpretationService` (past) and `ForesightService` (2050) resolve *who you are*
+   before any language model is asked for a sentence.
+3. **Prose.** The resolved facts go to the text provider with a strict brief — imaginative fiction
+   for the past, grounded speculative fiction for 2050, and in both cases explicit instructions
+   never to claim anything true about the reader's real life.
+4. **Portrait.** The image provider composes a portrait from the same facts. With a consented
+   reference photo it attempts an identity-preserving edit first.
 
-### Important Notes on OpenAI Access & Billing
-- **API Credits vs. ChatGPT Plus**: OpenAI API usage is billed pay-as-you-go and is **completely separate** from a ChatGPT Plus web subscription. You must have an active billing method or prepaid credits on your OpenAI Platform account.
-- **Model Availability**: Ensure your OpenAI organization has access to the configured models.
-- **Security Safeguards**: The `OPENAI_API_KEY` is validated on startup and is kept strictly server-side. It is never transmitted to the browser or included in git commits.
+### Is live generation actually on?
+
+```bash
+npm --prefix "Time Machine Backend" run doctor            # check key, models, quota
+npm --prefix "Time Machine Backend" run doctor -- --image # also generate one real portrait
+```
+
+Two things have to be true for real images, and both are easy to miss:
+`AI_PROVIDER_MODE=openai`, **and** a working `OPENAI_API_KEY`. With either missing you still get
+complete readings — but the portraits are SVG placeholders rather than generated images.
+
+The server checks the key once at boot and prints a blunt warning if live generation is
+unavailable; `GET /api/v1/health` reports the same under `provider`. When it is unavailable the app
+degrades immediately instead of making each reader wait out an API timeout, and the result page
+labels the portrait as a stand-in so a placeholder is never mistaken for a bad generation.
+
+### Provider configuration
+
+| Variable | Default | Notes |
+| --- | --- | --- |
+| `AI_PROVIDER_MODE` | `mock` | `mock` or `openai` — switches both timelines together |
+| `OPENAI_TEXT_MODEL` | `gpt-4o-mini` | Used for both chronicles |
+| `OPENAI_IMAGE_MODEL` | `gpt-image-2` | A preference, not a requirement. The boot preflight resolves it against the models the account can actually see and substitutes the best available one, so a retired or un-enabled model never breaks a reading |
+| `OPENAI_IMAGE_SIZE` | `1024x1536` | Portrait aspect, clamped per model — the `dall-e-*` family accepts a different set of sizes |
+
+Image models differ in ways that are all hard 400s if you guess: which sizes they accept, whether
+they return base64 or a URL, whether they can edit an image at all, and whether they implement
+`input_fidelity` (only `gpt-image-1` ever did). `src/providers/image/imageModels.js` holds that
+capability table, and requests are built from it rather than from assumptions.
 
 ---
 
-## ✦ Tests and Build Results
+## Architecture
 
-### Run All Tests
+```
+Time Machine Backend/src
+├── constants/        zodiac · archetypes · past · future (2050 canon) · stages
+├── services/         interpretation (past) · foresight (2050) · prompt · reading · zodiac · storage
+├── providers/        text/{Mock,OpenAI} · image/{Mock,OpenAI}
+├── controllers/      reading · catalog · portrait · zodiac · health
+└── models/           Reading (both timelines) · UserProfile · GenerationJob
+
+Time Machine Frontend/src
+├── theme/            TimelineProvider — sets data-timeline, re-skins everything
+├── styles/           tokens (three themes) · base (type scale) · components
+├── motion/           easings · Reveal · SplitText (GSAP) · interactions
+├── lottie/           factory · library · LottieIcon  (animations generated in code)
+├── components/       ui · layout · backdrop (canvas scenes) · reading
+└── features/         portal · past · future · wizard · reveal · results · archive · continuum
+```
+
+### One document, two timelines
+
+A `Reading` carries a `timeline` of `past` or `future`. Each half of the schema is filled by its own
+timeline, and the API only serialises the half that applies — so ownership, retention, portraits,
+retries and deletion are implemented exactly once. `GET /api/v1/catalog` serves every selectable
+option from the same constants the validator checks against, which means the UI can never offer a
+choice the API would reject.
+
+### Three palettes, one attribute
+
+Everything is themed from `data-timeline` on `<html>`, which re-resolves the whole token set — so
+the same `<h1>` sets as a period serif on one side and an engineered geometric on the other with no
+conditionals in the markup.
+
+The opening screen has a palette of its own, taken from its artwork: an indigo night warming to
+violet at the gate, with a cyan edge on the two doors. It is used on that screen and nowhere else —
+step through either door and that timeline takes over completely.
+
+|  | Past | 2050 |
+| --- | --- | --- |
+| Surface | Parchment, matte, no glow | Void black, lit, hard edges |
+| Display | Fraunces | Unbounded |
+| Text / label | Spectral / Cinzel | Space Grotesk / JetBrains Mono |
+| Motion | Slow, `--dur-slow` | Fast, `--dur-fast` |
+| Backdrop | Dust in a shaft of light | Horizon grid under falling data |
+
+### Motion
+
+Built on a small set of rules: only `transform`, `opacity`, `filter` and `clip-path` animate; every
+pressable surface scales to `0.97` on `:active`; hover effects are gated behind
+`(hover: hover)`; exits run faster than entrances; and nothing enters from `scale(0)`.
+
+Declarative motion is Framer Motion; anything with a timeline — the opening scene, the warp, and
+the scroll-scrubbed landing heroes (`src/motion/useScrollScene.js`) — is GSAP, so one library owns
+each element end to end and two systems never write the same transform. Scrubbing is reserved for
+motion tied to scroll position; reveals fire once, because content that fades back out on a few
+pixels of upward scroll reads as a bug.
+`prefers-reduced-motion` removes movement while keeping the opacity and colour changes that carry
+meaning — the canvas backdrops draw exactly one frame, Lottie icons hold a pose, and the portal
+navigates without the door animation.
+
+The Lottie icons are generated in code (`src/lottie/`) rather than exported from After Effects, so a
+single icon renders in brass on one timeline and signal-cyan on the other. `src/test/lottie.test.js`
+guards the parts of the format the renderer actually requires.
+
+---
+
+## Features
+
+- **The opening scene** — a painted hero (`src/assets/portal-hero.webp`) with the whole interface
+  built on top of it: the wordmark, and a glass door either side of the gate. Nothing is baked into
+  the artwork, so the layout stays responsive. Light passes over the hero — the core breathing, a
+  highlight travelling the ring, light running down the walkway — are screen-blended CSS, and the
+  hero and the cards parallax against each other on pointer move (GSAP `quickTo`).
+- **The warp** (`src/motion/warp.jsx`) — choosing a door plays one continuous move across the route
+  change: the card lifts, is drawn into the gate and shrinks away, the camera rushes the ring, and
+  light from the core floods the frame. The navigation happens while the screen is fully blown out,
+  and the destination's chunk is prefetched on hover and again on click, so the lazy route is
+  already resolved before the light withdraws. Nothing flickers because nothing is ever visible
+  mid-change. The overlay lives above the router so it survives the swap.
+- **Two wizards** — five steps each, sharing one step machine, with per-step validation and a photo
+  step that will not upload before consent is given.
+- **Live reveal** — real server stages, not a fake progress bar.
+- **Two reports** — a five-chapter chronicle or a 2050 dossier with signal read-out and a 2026→2050
+  trajectory.
+- **Archive** — every reading this browser has made, kept locally.
+- **Continuum** — a past chronicle and a 2050 projection set either side of *now*, with the
+  qualities both independently landed on.
+- **Export** — share link, portrait download, PNG and PDF (both loaded on demand).
+
+---
+
+## Privacy
+
+No account, no email, no password. A reading is reachable by its link; destructive actions
+additionally require an owner token held only in the browser that created it. Photographs are opt-in
+twice (consent, then upload), used solely to render that one portrait, and deleted with the reading.
+Everything expires automatically after `READING_RETENTION_DAYS` (default 30).
+
+## Tests
+
 ```bash
 npm test
 ```
-- **Backend Tests**: 16 passed (Zodiac boundary dates, mismatch validation, character profiling, API validation, Multer magic-byte detection, end-to-end reading lifecycle with authorized deletion).
-- **Frontend Tests**: 4 passed (Onboarding wizard navigation, zodiac selection, multi-step review, StoryReport rendering).
 
-### Production Build
-```bash
-npm run build
-```
-Builds the frontend production bundle via Vite with zero warnings or errors.
-
----
-
-## ✦ Where to Modify Theme Design Tokens
-
-All colors, typography, radii, and shadows are centralized in a single file:
-```text
-Time Machine Frontend/src/styles/tokens.css
-```
-To adjust colors or rebrand in the future, simply update the CSS custom properties in `:root`. Components throughout the application consume these semantic tokens rather than hardcoded hex values.
-
----
-
-## ✦ Entertainment & Ethical Disclaimer
-
-Mystical Past-Life Astrology is designed purely as an imaginative entertainment experience for personal storytelling and artistic reflection. It does not claim to prove reincarnation, diagnose health conditions, or provide verified historical facts.
+26 backend tests cover zodiac boundaries, deterministic interpretation and foresight, validation,
+and both timelines end to end against a real database. 40 frontend tests render every route,
+exercise both wizards including the exact payload each one posts, and validate every generated
+Lottie document.

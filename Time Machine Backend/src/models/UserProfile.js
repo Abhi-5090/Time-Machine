@@ -46,15 +46,23 @@ const UserProfileSchema = new mongoose.Schema(
       default: 'en',
     },
     preferences: {
+      // Past timeline
       archetypeId: { type: String, default: 'auto' },
       mainTheme: { type: String, default: 'wisdom' },
       storyGenre: { type: String, default: 'reflective' },
       historicalSetting: { type: String, default: 'system_select' },
       readingDepth: { type: String, default: 'full' },
       portraitStyle: { type: String, default: 'cinematic_mystical_realism' },
-      portraitFraming: { type: String, default: 'close_up' },
       portraitSetting: { type: String, default: 'system_select' },
       characterPresentation: { type: String, default: 'system_select' },
+      // Future timeline
+      futureArchetypeId: { type: String, default: 'auto' },
+      futureSector: { type: String, default: 'system_select' },
+      futureHabitat: { type: String, default: 'system_select' },
+      futureOutlook: { type: String, default: 'luminous' },
+      futureAesthetic: { type: String, default: 'holographic_realism' },
+      // Shared
+      portraitFraming: { type: String, default: 'close_up' },
     },
     consent: {
       readingProcessing: { type: Boolean, required: true },

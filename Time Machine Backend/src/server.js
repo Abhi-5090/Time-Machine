@@ -1,6 +1,7 @@
 import app from './app.js';
 import { config, validateConfig } from './config/env.js';
 import { connectDatabase, disconnectDatabase } from './config/database.js';
+import { checkProvider, getProviderHealth } from './services/providerHealth.js';
 
 async function bootstrap() {
   try {
@@ -10,15 +11,18 @@ async function bootstrap() {
     // 2. Connect to MongoDB
     await connectDatabase();
 
-    // 3. Start HTTP server
+    // 3. Verify the AI provider before taking traffic, so a bad key is
+    //    reported here rather than discovered by the first reader.
+    await checkProvider();
+
+    // 4. Start HTTP server
     const server = app.listen(config.PORT, () => {
+      const provider = getProviderHealth();
       console.log(`\n======================================================`);
-      console.log(`🌌 Mystical Past-Life Astrology API Server Running`);
-      console.log(`🪐 Port: ${config.PORT}`);
-      console.log(`🔮 Mode: AI_PROVIDER_MODE=${config.AI_PROVIDER_MODE}`);
-      console.log(`📜 Text Model: ${config.OPENAI_TEXT_MODEL}`);
-      console.log(`🎨 Image Model: ${config.OPENAI_IMAGE_MODEL}`);
-      console.log(`🛡️  Base URL: http://localhost:${config.PORT}${config.API_BASE_PATH}`);
+      console.log(`  Time Machine API — past and 2050`);
+      console.log(`  Port       ${config.PORT}`);
+      console.log(`  Base URL   http://localhost:${config.PORT}${config.API_BASE_PATH}`);
+      console.log(`  Generation ${provider.live ? `live (text ${config.OPENAI_TEXT_MODEL}, image ${config.OPENAI_IMAGE_MODEL})` : `offline — ${provider.reason}`}`);
       console.log(`======================================================\n`);
     });
 

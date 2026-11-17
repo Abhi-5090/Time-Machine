@@ -10,6 +10,7 @@ import healthRoutes from './routes/health.routes.js';
 import zodiacRoutes from './routes/zodiac.routes.js';
 import readingRoutes from './routes/reading.routes.js';
 import portraitRoutes from './routes/portrait.routes.js';
+import catalogRoutes from './routes/catalog.routes.js';
 
 const app = express();
 
@@ -21,15 +22,21 @@ app.use(
 );
 
 // Cross-origin resource sharing
+//
+// In development any localhost port is allowed so the Vite dev server can move
+// freely. In production only CLIENT_ORIGIN (comma-separated list supported) is
+// accepted — the previous behaviour allowed every origin unconditionally.
+const allowedOrigins = config.CLIENT_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean);
+const isLocalOrigin = (origin) => /^https?:\/\/(localhost|127\.0\.0\.1|\[::1\])(:\d+)?$/.test(origin);
+
 app.use(
   cors({
     origin: (origin, callback) => {
-      // Allow requests with no origin (e.g. mobile apps, curl) or matching origins
-      if (!origin || origin === config.CLIENT_ORIGIN || origin.includes('localhost') || origin.includes('127.0.0.1')) {
-        callback(null, true);
-      } else {
-        callback(null, true); // Dev flexible origin
-      }
+      // Same-origin requests, curl and native clients send no Origin header.
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.includes(origin)) return callback(null, true);
+      if (config.NODE_ENV !== 'production' && isLocalOrigin(origin)) return callback(null, true);
+      return callback(new Error(`Origin ${origin} is not permitted by CORS policy.`));
     },
     credentials: true,
   })
@@ -46,6 +53,7 @@ app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 // Mount API routes
 const apiBase = config.API_BASE_PATH; // /api/v1
 app.use(`${apiBase}/health`, healthRoutes);
+app.use(`${apiBase}/catalog`, catalogRoutes);
 app.use(`${apiBase}/zodiac`, zodiacRoutes);
 app.use(`${apiBase}/readings`, readingRoutes);
 app.use(`${apiBase}/portraits`, portraitRoutes);

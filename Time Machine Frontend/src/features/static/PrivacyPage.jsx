@@ -1,66 +1,53 @@
 import React from 'react';
-import { Shield, Lock, Trash2, EyeOff, UserCheck } from 'lucide-react';
+import { LegalPage } from './LegalPage';
 
-export function PrivacyPage() {
+const SECTIONS = [
+  {
+    heading: 'What is collected',
+    body: [
+      'Only what you type into a wizard: a preferred name if you give one, a date of birth, a star sign, optionally a birth time and birthplace, and the preferences you select. There is no account, no email address and no password.',
+      'If you choose to share a photograph, the image file is collected as well. That requires its own separate, explicit consent and is never implied by anything else you agree to.',
+    ],
+  },
+  {
+    heading: 'What it is used for',
+    body: [
+      'Your answers are used to generate one reading and nothing else. They are sent to the generation service that writes the chronicle and renders the portrait, and they are stored against that reading so you can come back to it.',
+      'A shared photograph is used solely to preserve your likeness in the portrait for that one reading. It is not used to train anything, it is not shown to other people, and it is not used for any other purpose.',
+    ],
+  },
+  {
+    heading: 'Who can see a reading',
+    body: [
+      'A reading is reachable by its link. Anyone you send that link to can read it, so treat it as you would any other link to something personal.',
+      'Destructive actions — deleting a reading, re-rendering a portrait — additionally require an owner token that is stored only in the browser that created the reading. Nobody else can change or delete your reading, even with the link.',
+    ],
+  },
+  {
+    heading: 'How long it is kept',
+    body: [
+      'Readings are deleted automatically 30 days after they are created, along with every asset generated for them and any photograph attached to them.',
+      'You can delete a reading sooner at any time from the reading itself or from your archive. Deleting removes the chronicle, the portrait, the stored profile and the uploaded photograph together, and cannot be undone.',
+    ],
+  },
+  {
+    heading: 'What is stored in your browser',
+    body: [
+      'Two things: the owner tokens for readings this browser created, and the archive list that lets you find them again. Both live in localStorage, never leave the device, and are not readable by the server.',
+      'Clearing your browser data removes both. The readings themselves will remain on the server until they expire, but you will no longer have the links.',
+    ],
+  },
+];
+
+export default function PrivacyPage() {
   return (
-    <div style={{ padding: 'var(--space-2xl) 0 var(--space-3xl)' }}>
-      <div className="container" style={{ maxWidth: '840px' }}>
-        <div style={{ textAlign: 'center', marginBottom: 'var(--space-2xl)' }}>
-          <div className="badge badge-gold" style={{ marginBottom: '8px' }}>
-            ✦ Data Protection & Respect
-          </div>
-          <h1>Privacy Policy & Data Notice</h1>
-          <p style={{ maxWidth: '600px', margin: '0 auto' }}>
-            We honor your privacy as a sacred trust. Learn how your data and optional photographs are handled.
-          </p>
-        </div>
-
-        <div className="card" style={{ padding: 'var(--space-2xl)', display: 'flex', flexDirection: 'column', gap: 'var(--space-xl)' }}>
-          <div>
-            <h2 style={{ fontSize: '1.4rem', color: 'var(--color-primary)', marginBottom: '12px' }}>
-              1. Principles of Data Minimization
-            </h2>
-            <p style={{ lineHeight: '1.7' }}>
-              We only request information directly relevant to composing your imaginative past-life chronicle. 
-              You are never required to register an account, enter payment cards, or disclose government identification.
-            </p>
-          </div>
-
-          <div>
-            <h2 style={{ fontSize: '1.4rem', color: 'var(--color-primary)', marginBottom: '12px' }}>
-              2. Optional Personal Photographs & Facial Resemblance
-            </h2>
-            <p style={{ lineHeight: '1.7', marginBottom: '12px' }}>
-              Uploading a photograph is entirely optional. When you choose to upload an image and provide explicit consent:
-            </p>
-            <ul style={{ paddingLeft: '24px', color: 'var(--color-text-muted)', lineHeight: '1.7' }}>
-              <li>Your photo is transmitted securely to our backend server and stored in private directories inaccessible by the public web.</li>
-              <li>Your photograph is used solely as a visual identity reference to preserve recognizable facial geometry in the generated artistic portrait.</li>
-              <li>We never use your photograph to infer personality, zodiac sign, ethnicity, physical health, psychological condition, or actual past-life identity.</li>
-              <li>Your original photo is never displayed publicly or included in downloaded reports unless you explicitly download it yourself.</li>
-            </ul>
-          </div>
-
-          <div>
-            <h2 style={{ fontSize: '1.4rem', color: 'var(--color-primary)', marginBottom: '12px' }}>
-              3. AI Provider Processing (OpenAI)
-            </h2>
-            <p style={{ lineHeight: '1.7' }}>
-              When live AI generation is active, character narrative prompts and consented reference photos are processed via the official OpenAI API. 
-              Under standard OpenAI API enterprise terms, data submitted through the API is not used to train future OpenAI foundation models.
-            </p>
-          </div>
-
-          <div>
-            <h2 style={{ fontSize: '1.4rem', color: 'var(--color-primary)', marginBottom: '12px' }}>
-              4. Immediate Deletion Rights
-            </h2>
-            <p style={{ lineHeight: '1.7' }}>
-              You maintain total dominion over your reading. On your results page, clicking the trash icon immediately and permanently removes your reading record, generated portrait, and any uploaded reference photograph from our database and disk storage.
-            </p>
-          </div>
-        </div>
-      </div>
-    </div>
+    <LegalPage
+      pageTitle="Privacy — Time Machine"
+      eyebrow="Privacy"
+      title="What happens to what you tell us"
+      updated="12 November 2026"
+      intro="Short version: no account, nothing sold or shared, photographs are opt-in twice, and everything deletes itself after thirty days."
+      sections={SECTIONS}
+    />
   );
 }

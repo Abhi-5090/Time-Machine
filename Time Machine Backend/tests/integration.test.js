@@ -68,7 +68,7 @@ describe('End-to-End Reading Workflow', () => {
     expect(completedReading.stageProgressPercent).toBe(100);
 
     // Verify structured story sections
-    expect(completedReading.storySections.origins).toContain('In the heart of an');
+    expect(completedReading.storySections.origins).toContain('beneath a sky painted with untamed constellations');
     expect(completedReading.storySections.dailyLife).toBeDefined();
     expect(completedReading.storySections.turningPoint).toBeDefined();
     expect(completedReading.storySections.conclusion).toBeDefined();

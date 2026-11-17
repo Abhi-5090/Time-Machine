@@ -1,0 +1,492 @@
+/* ==========================================================================
+   The portal — the opening screen
+   --------------------------------------------------------------------------
+   A painted hero with the whole interface built on top of it. Nothing is baked
+   into the artwork, so the layout is free: the hero covers the viewport at any
+   aspect and the two doors are ordinary responsive cards flanking the gate.
+
+   Layers, back to front:
+     hero image → light passes (core, sweep, walkway) → vignette → interface
+   ========================================================================== */
+
+.portal {
+  position: relative;
+  display: flex;
+  overflow: hidden;
+}
+
+.portal-root {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+}
+
+/*
+  The entrance is a GSAP timeline that starts inside useLayoutEffect, before
+  the browser paints. These elements therefore begin hidden in CSS: without
+  that they would render once at full opacity and then be yanked to zero on the
+  timeline's first frame. Reduced motion skips the timeline, so it restores
+  them instead.
+*/
+.hero-image,
+.portal-masthead,
+.door,
+.portal-foot {
+  opacity: 0;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .hero-image,
+  .portal-masthead,
+  .door,
+  .portal-foot {
+    opacity: 1;
+  }
+}
+
+/* ── Stage ──────────────────────────────────────────────────────────────── */
+
+.portal-stage {
+  position: relative;
+  flex: 1;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.portal-hero {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+}
+
+.hero-image {
+  position: absolute;
+  /* Oversized rather than scaled, so the parallax has somewhere to travel
+     without exposing an edge — and the transform stays free for GSAP. */
+  top: -18px;
+  left: -26px;
+  width: calc(100% + 52px);
+  height: calc(100% + 36px);
+  object-fit: cover;
+  object-position: center 46%;
+  user-select: none;
+  will-change: transform, opacity;
+}
+
+/* ── Light passes over the artwork ──────────────────────────────────────── */
+
+/*
+  All three are screen-blended, so they add light to the painted scene instead
+  of laying grey shapes over it. They are anchored on the gate, which `cover`
+  keeps at roughly the centre of frame at every aspect ratio.
+*/
+
+.hero-core {
+  position: absolute;
+  left: 50%;
+  top: 46%;
+  width: clamp(180px, 20vw, 420px);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  filter: blur(10px);
+  background: radial-gradient(
+    circle,
+    rgba(255, 238, 205, 0.7) 0%,
+    rgba(255, 186, 120, 0.34) 36%,
+    rgba(178, 120, 255, 0.14) 66%,
+    transparent 78%
+  );
+}
+
+.hero-sweep {
+  position: absolute;
+  left: 50%;
+  top: 44%;
+  width: clamp(360px, 42vw, 860px);
+  aspect-ratio: 1;
+  translate: -50% -50%;
+  border-radius: 50%;
+  pointer-events: none;
+  mix-blend-mode: screen;
+  background: conic-gradient(
+    from 0deg,
+    transparent 0 60%,
+    rgba(255, 255, 255, 0.07) 69%,
+    rgba(190, 230, 255, 0.24) 76%,
+    rgba(255, 255, 255, 0.05) 83%,
+    transparent 90%
+  );
+  -webkit-mask-image: radial-gradient(circle, transparent 0 40%, #000 46%, #000 52%, transparent 59%);
+  mask-image: radial-gradient(circle, transparent 0 40%, #000 46%, #000 52%, transparent 59%);
+  animation: hero-sweep 14s linear infinite;
+}
+
+@keyframes hero-sweep {
+  to {
+    rotate: 360deg;
+  }
+}
+
+.hero-walk {
+  position: absolute;
+  left: 50%;
+  top: 62%;
+  bottom: 0;
+  width: min(46vw, 760px);
+  translate: -50% 0;
+  overflow: hidden;
+  pointer-events: none;
+  -webkit-mask-image: linear-gradient(to bottom, #000 0%, transparent 94%);
+  mask-image: linear-gradient(to bottom, #000 0%, transparent 94%);
+}
+
+.hero-walk::before {
+  content: '';
+  position: absolute;
+  left: -16%;
+  right: -16%;
+  height: 14%;
+  mix-blend-mode: screen;
+  background: linear-gradient(to bottom, transparent, rgba(255, 206, 155, 0.3), transparent);
+  animation: hero-walk-travel 6.5s linear infinite;
+}
+
+@keyframes hero-walk-travel {
+  from {
+    transform: translateY(-40%) scaleX(0.45);
+    opacity: 0;
+  }
+  16% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(700%) scaleX(1.7);
+    opacity: 0;
+  }
+}
+
+/* Settles the artwork into the page and keeps the strap and wordmark legible
+   against whatever the crop puts behind them. */
+.hero-vignette {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(to bottom, rgba(5, 8, 24, 0.72) 0%, transparent 22%, transparent 58%, var(--bg) 100%),
+    radial-gradient(130% 100% at 50% 50%, transparent 42%, rgba(5, 8, 24, 0.58) 100%);
+}
+
+/* ── Interface ──────────────────────────────────────────────────────────── */
+
+.portal-ui {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  will-change: transform;
+}
+
+.door-card {
+  /* The card is what flies into the gate, so it owns its own layer up front
+     rather than being promoted mid-flight. */
+  will-change: transform, opacity;
+}
+
+.portal-masthead {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: clamp(var(--space-3), 2vw, var(--space-6));
+  padding: clamp(var(--space-5), 5vh, var(--space-8)) var(--gutter) 0;
+  white-space: nowrap;
+}
+
+.portal-wordmark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65em;
+  font-family: var(--font-display);
+  font-size: clamp(1.05rem, 0.4rem + 2vw, 2.5rem);
+  font-weight: 700;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--ink);
+  text-shadow: 0 2px 30px rgba(8, 12, 36, 0.9);
+}
+
+.portal-wordmark-future {
+  letter-spacing: -0.03em;
+  background: linear-gradient(140deg, #ffffff 0%, #dcebff 42%, var(--accent-2) 100%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.portal-cross {
+  font-family: var(--font-body);
+  font-size: clamp(0.8rem, 0.4rem + 1.1vw, 1.5rem);
+  font-weight: 300;
+  color: var(--ink-soft);
+  opacity: 0.7;
+}
+
+/* ── Doors ──────────────────────────────────────────────────────────────── */
+
+.portal-doors {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-5);
+  padding: var(--space-5) clamp(var(--space-4), 2.2vw, var(--space-7));
+}
+
+.door {
+  width: clamp(220px, 19vw, 300px);
+  will-change: transform, opacity, filter;
+}
+
+.door-card {
+  position: relative;
+  isolation: isolate;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: clamp(6px, 0.5vw, 10px);
+  width: 100%;
+  padding: clamp(var(--space-4), 1.6vw, var(--space-6));
+  text-align: left;
+  color: var(--ink);
+  border-radius: 20px;
+  cursor: pointer;
+  /* Deep glass: dark enough that white type always clears it, whatever the
+     artwork is doing behind. */
+  background: linear-gradient(155deg, rgba(37, 44, 104, 0.62) 0%, rgba(13, 18, 52, 0.72) 100%);
+  backdrop-filter: blur(18px) saturate(1.2);
+  -webkit-backdrop-filter: blur(18px) saturate(1.2);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.1),
+    0 30px 70px -32px rgba(0, 0, 0, 0.95);
+  transition:
+    transform var(--dur-base) var(--ease-out),
+    box-shadow var(--dur-base) var(--ease-soft);
+}
+
+.door-card:active {
+  transform: scale(0.985);
+}
+
+/* The neon edge, drawn as a gradient ring so it can brighten on approach
+   without the border itself changing width and shifting the layout. */
+.door-card-edge {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(150deg, rgba(111, 227, 255, 0.75), rgba(139, 92, 246, 0.5) 52%, rgba(255, 110, 199, 0.6));
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+  opacity: 0.75;
+  transition: opacity var(--dur-base) var(--ease-soft);
+}
+
+.door-card-bloom {
+  position: absolute;
+  inset: -8%;
+  z-index: -2;
+  border-radius: inherit;
+  opacity: 0;
+  pointer-events: none;
+  background: radial-gradient(
+    70% 70% at 50% 62%,
+    rgba(139, 92, 246, 0.55) 0%,
+    rgba(255, 110, 199, 0.18) 52%,
+    transparent 76%
+  );
+  filter: blur(14px);
+  transition: opacity var(--dur-base) var(--ease-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .door-card:hover {
+    transform: translateY(-4px);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.14),
+      0 40px 86px -34px rgba(0, 0, 0, 0.95),
+      0 0 60px -14px rgba(111, 227, 255, 0.45);
+  }
+
+  .door-card:hover .door-card-edge {
+    opacity: 1;
+  }
+
+  .door-card:hover .door-card-bloom {
+    opacity: 1;
+  }
+
+  .door-card:hover .door-cta {
+    color: var(--accent-2);
+    gap: 0.95em;
+  }
+}
+
+.door-card:focus-visible {
+  outline: 2px solid var(--accent-2);
+  outline-offset: 4px;
+}
+
+.door-card-icon {
+  display: grid;
+  place-items: center;
+  width: clamp(44px, 3.4vw, 58px);
+  aspect-ratio: 1;
+  margin-bottom: clamp(2px, 0.4vw, 8px);
+  border: 1px solid rgba(150, 205, 255, 0.32);
+  border-radius: 14px;
+  background: rgba(8, 13, 40, 0.55);
+}
+
+.door-marker {
+  font-family: var(--font-label);
+  font-size: clamp(0.6rem, 0.42rem + 0.22vw, 0.72rem);
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  opacity: 0.85;
+}
+
+.door-title {
+  font-family: var(--font-display);
+  font-size: clamp(1.45rem, 0.9rem + 1.5vw, 2.3rem);
+  font-weight: 700;
+  line-height: 1.02;
+  letter-spacing: -0.035em;
+  text-wrap: balance;
+}
+
+.door-caption {
+  font-size: clamp(0.82rem, 0.7rem + 0.28vw, 0.98rem);
+  line-height: 1.45;
+  color: var(--ink-soft);
+  text-wrap: pretty;
+}
+
+.door-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  margin-top: clamp(4px, 0.6vw, 10px);
+  font-family: var(--font-label);
+  font-size: clamp(0.62rem, 0.48rem + 0.2vw, 0.76rem);
+  font-weight: 700;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+  color: var(--ink);
+  transition:
+    color var(--dur-fast) var(--ease-soft),
+    gap var(--dur-base) var(--ease-out);
+}
+
+/* ── Foot ───────────────────────────────────────────────────────────────── */
+
+.portal-foot {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 3;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-6) var(--gutter) var(--space-4);
+  font-size: 0.76rem;
+  color: var(--ink-muted);
+  pointer-events: none;
+}
+
+.portal-foot a {
+  pointer-events: auto;
+}
+
+.portal-foot-links {
+  display: inline-flex;
+  gap: var(--space-5);
+  align-items: center;
+}
+
+.portal-foot-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--ink-soft);
+  transition: color var(--dur-fast) var(--ease-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .portal-foot-links a:hover {
+    color: var(--accent-2);
+  }
+}
+
+/* ==========================================================================
+   Narrow screens
+   --------------------------------------------------------------------------
+   Flanking the gate needs width the phone does not have, so the hero becomes a
+   band at the top and the two doors stack beneath it where they can be read.
+   ========================================================================== */
+
+@media (max-width: 900px) {
+  .portal-root {
+    overflow-y: auto;
+  }
+
+  .portal-stage {
+    flex: none;
+    height: clamp(300px, 46dvh, 460px);
+  }
+
+  .hero-image {
+    object-position: center 42%;
+  }
+
+  .hero-walk {
+    display: none;
+  }
+
+  .portal-ui {
+    position: absolute;
+  }
+
+  .portal-doors-stacked {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: var(--space-4);
+    padding: var(--space-5) var(--gutter) var(--space-3);
+  }
+
+  .door {
+    width: 100%;
+  }
+
+  .portal-foot {
+    position: relative;
+    padding: var(--space-4) var(--gutter) var(--space-5);
+  }
+}
