@@ -60,6 +60,11 @@ export function capabilities(model) {
     supportsInputFidelity: model === 'gpt-image-1',
     // The gpt-image family always answers in base64 and refuses response_format.
     returnsBase64: group === 'gptImage',
+    // …and can hand back a compressed format instead of a full PNG. A 1024x1536
+    // portrait is ~2.4 MB as PNG and ~145 KB as WebP at quality 80, which is
+    // the difference between a portrait appearing at once and a reader
+    // watching an empty frame for nine seconds on a slow connection.
+    supportsOutputFormat: group === 'gptImage',
     sizes: SIZES[group],
     portraitSize: PORTRAIT[group],
   };
@@ -125,6 +130,16 @@ export function isUnsupportedParameter(error) {
     code === 'invalid_input_fidelity_model' ||
     /does not support the '[^']+' parameter/i.test(String(error?.message || ''))
   );
+}
+
+/** Identifies an image's real type from its first bytes, not from a guess. */
+export function sniffImage(buffer) {
+  if (!buffer || buffer.length < 12) return { ext: '.png', mimeType: 'image/png' };
+  if (buffer[0] === 0xff && buffer[1] === 0xd8) return { ext: '.jpg', mimeType: 'image/jpeg' };
+  if (buffer.toString('ascii', 0, 4) === 'RIFF' && buffer.toString('ascii', 8, 12) === 'WEBP') {
+    return { ext: '.webp', mimeType: 'image/webp' };
+  }
+  return { ext: '.png', mimeType: 'image/png' };
 }
 
 export function isAuthFailure(error) {

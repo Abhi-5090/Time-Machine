@@ -11,6 +11,7 @@ import {
   isAuthFailure,
   isModelUnavailable,
   isUnsupportedParameter,
+  sniffImage,
 } from './imageModels.js';
 
 /**
@@ -53,6 +54,8 @@ export class OpenAIImageProvider extends ImageProvider {
     this.model = health.imageModel || config.OPENAI_IMAGE_MODEL || IMAGE_MODEL_PREFERENCE[0];
     this.available = health.availableImageModels || [];
     this.requestedSize = config.OPENAI_IMAGE_SIZE || '1024x1536';
+    this.outputFormat = config.OPENAI_IMAGE_FORMAT || 'webp';
+    this.outputCompression = config.OPENAI_IMAGE_COMPRESSION;
   }
 
   /** Models to try, best first, limited to what the account can see. */
@@ -83,11 +86,40 @@ export class OpenAIImageProvider extends ImageProvider {
     throw new Error('OpenAI image response contained neither b64_json nor url.');
   }
 
+  /** Adds the compressed-output options a model understands. */
+  #withFormat(model, options) {
+    if (!capabilities(model).supportsOutputFormat || this.outputFormat === 'png') return options;
+    return { ...options, output_format: this.outputFormat, output_compression: this.outputCompression };
+  }
+
+  /**
+   * Runs a request, and retries once without the optional parameters if the
+   * model rejects them. A capability table can fall behind the API; losing the
+   * whole portrait to a parameter it does not implement would be worse than
+   * losing the compression.
+   */
+  async #send(call, options, optional) {
+    try {
+      return await call(options);
+    } catch (error) {
+      const dropped = optional.filter((key) => key in options);
+      if (!isUnsupportedParameter(error) || dropped.length === 0) throw error;
+
+      console.warn(`[OpenAIImageProvider] ${options.model} rejected ${dropped.join(', ')}; retrying without.`);
+      const retry = { ...options };
+      for (const key of dropped) delete retry[key];
+      return call(retry);
+    }
+  }
+
   async #generate(model, prompt) {
     const caps = capabilities(model);
-    const options = { model, prompt, n: 1, size: resolveSize(model, this.requestedSize) };
+    const options = this.#withFormat(model, { model, prompt, n: 1, size: resolveSize(model, this.requestedSize) });
     if (!caps.returnsBase64) options.response_format = 'b64_json';
-    return this.openai.images.generate(options);
+    return this.#send((o) => this.openai.images.generate(o), options, [
+      'output_format',
+      'output_compression',
+    ]);
   }
 
   /** Restages the reader's own photograph, which is what preserves the face. */
@@ -96,22 +128,20 @@ export class OpenAIImageProvider extends ImageProvider {
     const extension = EXT_BY_MIME[reference.mimeType] || '.png';
     const image = await toFile(reference.buffer, `reference${extension}`, { type: reference.mimeType });
 
-    const options = { model, image, prompt, n: 1, size: resolveSize(model, this.requestedSize) };
+    const options = this.#withFormat(model, {
+      model,
+      image,
+      prompt,
+      n: 1,
+      size: resolveSize(model, this.requestedSize),
+    });
     if (caps.supportsInputFidelity) options.input_fidelity = 'high';
 
-    try {
-      return await this.openai.images.edit(options);
-    } catch (error) {
-      // A capability table can fall behind the API. If the model rejects a
-      // parameter, drop it and try once more rather than losing the edit — and
-      // with it the reader's likeness.
-      if (isUnsupportedParameter(error) && options.input_fidelity) {
-        console.warn(`[OpenAIImageProvider] ${model} rejected input_fidelity; retrying without it.`);
-        delete options.input_fidelity;
-        return this.openai.images.edit(options);
-      }
-      throw error;
-    }
+    return this.#send((o) => this.openai.images.edit(o), options, [
+      'input_fidelity',
+      'output_format',
+      'output_compression',
+    ]);
   }
 
   /**
@@ -199,8 +229,13 @@ export class OpenAIImageProvider extends ImageProvider {
       throw err;
     }
 
-    const saved = await StorageService.saveGeneratedPortrait(buffer, '.png', 'image/png');
-    console.log(`[OpenAIImageProvider] ${label}: saved ${(buffer.length / 1024).toFixed(0)}KB as ${saved.assetId}`);
+    // Trust the bytes over the request: a model that ignored the format option
+    // would otherwise be served under the wrong content type.
+    const { ext, mimeType } = sniffImage(buffer);
+    const saved = await StorageService.saveGeneratedPortrait(buffer, ext, mimeType);
+    console.log(
+      `[OpenAIImageProvider] ${label}: saved ${(buffer.length / 1024).toFixed(0)}KB ${mimeType} as ${saved.assetId}`
+    );
     return saved;
   }
 

@@ -12,6 +12,10 @@ const OPENAI_API_KEY = process.env.OPENAI_API_KEY || '';
 const OPENAI_TEXT_MODEL = process.env.OPENAI_TEXT_MODEL || 'gpt-4o-mini';
 const OPENAI_IMAGE_MODEL = process.env.OPENAI_IMAGE_MODEL || 'gpt-image-1';
 const OPENAI_IMAGE_SIZE = process.env.OPENAI_IMAGE_SIZE || '1024x1536';
+// A 1024x1536 PNG is ~2.4 MB; the same portrait as WebP is ~145 KB. Set
+// OPENAI_IMAGE_FORMAT=png to keep lossless output at that cost.
+const OPENAI_IMAGE_FORMAT = (process.env.OPENAI_IMAGE_FORMAT || 'webp').toLowerCase();
+const OPENAI_IMAGE_COMPRESSION = parseInt(process.env.OPENAI_IMAGE_COMPRESSION, 10) || 80;
 
 const STORAGE_PROVIDER = process.env.STORAGE_PROVIDER || 'local';
 const MAX_UPLOAD_BYTES = parseInt(process.env.MAX_UPLOAD_BYTES, 10) || 5 * 1024 * 1024;
@@ -62,6 +66,8 @@ export const config = {
   OPENAI_TEXT_MODEL,
   OPENAI_IMAGE_MODEL,
   OPENAI_IMAGE_SIZE,
+  OPENAI_IMAGE_FORMAT,
+  OPENAI_IMAGE_COMPRESSION,
   STORAGE_PROVIDER,
   MAX_UPLOAD_BYTES,
   READING_RETENTION_DAYS,

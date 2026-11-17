@@ -26,6 +26,11 @@ services:
         value: gpt-image-2
       - key: OPENAI_IMAGE_SIZE
         value: 1024x1536
+      - key: OPENAI_IMAGE_FORMAT
+        value: webp
+      - key: OPENAI_IMAGE_COMPRESSION
+        value: "80"
+
       - key: READING_RETENTION_DAYS
         value: "30"
       # Set these in the dashboard — never commit them.
