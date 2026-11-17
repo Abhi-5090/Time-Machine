@@ -234,7 +234,7 @@ export default function PastWizard() {
       submitting={submitting}
       submitLabel="Open the door"
       onSubmit={submit}
-      footnote="We keep your reading for 30 days. You can delete it any time, and everything made for it goes with it."
+      footnote="We keep your card for 30 days. You can delete it any time, and everything made for it goes with it."
     />
   );
 }

@@ -273,7 +273,7 @@ export default function FutureWizard() {
       submitting={submitting}
       submitLabel="Show me 2050"
       onSubmit={submit}
-      footnote="We keep your reading for 30 days. You can delete it any time, and everything made for it goes with it."
+      footnote="We keep your card for 30 days. You can delete it any time, and everything made for it goes with it."
     />
   );
 }
