@@ -33,7 +33,7 @@ const DOORS = [
     marker: 'Behind you',
     lottie: 'hourglass',
     to: '/past',
-    cta: 'Open the chamber',
+    cta: 'Open the door',
   },
   {
     id: 'future',
@@ -43,7 +43,7 @@ const DOORS = [
     marker: 'Ahead of you',
     lottie: 'rocket',
     to: '/future',
-    cta: 'Run the projection',
+    cta: 'Show me 2050',
   },
 ];
 
@@ -302,7 +302,7 @@ export function PortalPage() {
         {isNarrow ? <div className="portal-doors portal-doors-stacked">{doors}</div> : null}
 
         <footer className="portal-foot">
-          <span>Both journeys are works of fiction. Neither is a prediction.</span>
+          <span>Both sides are made-up stories. Neither one is a real prediction.</span>
           <span className="portal-foot-links">
             {[
               { to: '/archive', label: 'Archive', icon: 'archive' },

@@ -29,15 +29,15 @@ export function PhotoStep({ answers, set, copy }) {
     if (!file) return;
 
     if (!ACCEPTED.includes(file.type)) {
-      toast('That file type is not supported. Use a JPEG, PNG or WebP image.', { tone: 'error' });
+      toast('We cannot read that kind of file. Use a JPG, PNG or WebP picture.', { tone: 'error' });
       return;
     }
     if (file.size > MAX_BYTES) {
-      toast('That image is larger than 5 MB. Try a smaller one.', { tone: 'error' });
+      toast('That picture is bigger than 5 MB. Try a smaller one.', { tone: 'error' });
       return;
     }
     if (!answers.photoConsent) {
-      toast('Tick the photo consent box before uploading.', { tone: 'error' });
+      toast('Tick the box above before you add a photo.', { tone: 'error' });
       return;
     }
 
@@ -49,9 +49,9 @@ export function PhotoStep({ answers, set, copy }) {
         photoPreview: URL.createObjectURL(file),
         photoName: file.name,
       });
-      toast('Photograph received. It is used only to style your portrait.', { tone: 'success' });
+      toast('Got your photo. We only use it to draw your picture.', { tone: 'success' });
     } catch (error) {
-      toast(error.message || 'That upload did not go through.', { tone: 'error' });
+      toast(error.message || 'That did not upload. Please try again.', { tone: 'error' });
     } finally {
       setUploading(false);
     }
@@ -64,7 +64,7 @@ export function PhotoStep({ answers, set, copy }) {
     if (assetId) {
       await api.deleteReferencePhoto(assetId).catch(() => {});
     }
-    toast('Photograph deleted.', { tone: 'info' });
+    toast('Photo deleted.', { tone: 'info' });
   };
 
   return (
@@ -76,11 +76,11 @@ export function PhotoStep({ answers, set, copy }) {
           if (!checked && answers.photoAssetId) removePhoto();
           set({ photoConsent: checked });
         }}
-        title="I consent to my photograph being used for this portrait"
+        title="Yes, use my photo to draw my picture"
       >
-        Your image is sent to the portrait model to preserve your likeness, stored privately, and
-        deleted when you delete the reading. It is never used for training, never shown to anyone
-        else, and never required.
+        Your photo goes to the drawing tool so the face looks like yours. We keep it private, and we
+        delete it when you delete your card. We never train on it, never show it to anyone else, and
+        you never have to give one.
       </Checkbox>
 
       <AnimatePresence mode="wait" initial={false}>
@@ -102,7 +102,7 @@ export function PhotoStep({ answers, set, copy }) {
                   <img src={answers.photoPreview} alt="" className="photo-preview" />
                 ) : null}
                 <div style={{ flex: 1, minWidth: 0 }}>
-                  <p style={{ fontWeight: 600, marginBottom: 4 }}>Photograph attached</p>
+                  <p style={{ fontWeight: 600, marginBottom: 4 }}>Photo added</p>
                   <p
                     style={{
                       color: 'var(--ink-muted)',
@@ -112,7 +112,7 @@ export function PhotoStep({ answers, set, copy }) {
                       whiteSpace: 'nowrap',
                     }}
                   >
-                    {answers.photoName || 'Reference image'}
+                    {answers.photoName || 'Your photo'}
                   </p>
                 </div>
                 <Button variant="danger" size="sm" onClick={removePhoto} icon={<Icon name="delete" size={14} />}>
@@ -146,10 +146,10 @@ export function PhotoStep({ answers, set, copy }) {
               >
                 <Icon name="upload" size={24} style={{ color: 'var(--accent)' }} />
                 <p style={{ fontWeight: 600 }}>
-                  {uploading ? 'Uploading…' : 'Drop a photograph, or choose a file'}
+                  {uploading ? 'Uploading…' : 'Drop a photo here, or pick a file'}
                 </p>
                 <p style={{ color: 'var(--ink-muted)', fontSize: '0.84rem' }}>
-                  JPEG, PNG or WebP · up to 5 MB · a clear, front-facing photo works best
+                  JPG, PNG or WebP · up to 5 MB · a clear photo of your face works best
                 </p>
                 <input
                   ref={inputRef}
@@ -171,7 +171,7 @@ export function PhotoStep({ answers, set, copy }) {
             style={{ color: 'var(--ink-muted)', fontSize: '0.9rem' }}
           >
             {copy?.skipNote ||
-              'No photograph is fine. A face will be imagined entirely, and the result is just as complete.'}
+              'No photo is fine. We will draw a face for you instead, and your card will look just as good.'}
           </motion.p>
         )}
       </AnimatePresence>
@@ -196,10 +196,10 @@ export function ConsentBlock({ answers, set, fictionTitle, fictionBody }) {
         id="consent-processing"
         checked={answers.consentReading}
         onChange={(checked) => set({ consentReading: checked })}
-        title="I agree to my answers being processed to generate this reading"
+        title="Yes, use my answers to make my card"
       >
-        Your answers are sent to the generation service and stored against this reading alone. There
-        is no account, nothing is sold or shared, and deleting the reading removes every asset made
+        Your answers go to the tool that writes your card, and they are saved against that card only.
+        There is no account, nothing is sold or shared, and deleting the card deletes everything made
         from it.
       </Checkbox>
 
@@ -214,7 +214,7 @@ export function ConsentBlock({ answers, set, fictionTitle, fictionBody }) {
         }}
       >
         <Icon name="shield" size={14} />
-        Readings expire automatically after 30 days.
+        Your card deletes itself after 30 days.
       </p>
     </div>
   );

@@ -10,23 +10,23 @@ import { Icon } from '../ui/Icon';
 
 const LINKS = {
   past: [
-    { to: '/past', label: 'The Chamber', icon: 'chamber', end: true },
-    { to: '/past/new', label: 'Begin a reading', icon: 'begin' },
-    { to: '/archive', label: 'Archive', icon: 'archive' },
-    { to: '/continuum', label: 'Continuum', icon: 'continuum' },
+    { to: '/past', label: 'Home', icon: 'chamber', end: true },
+    { to: '/past/new', label: 'Start', icon: 'begin' },
+    { to: '/archive', label: 'My cards', icon: 'archive' },
+    { to: '/continuum', label: 'Both sides', icon: 'continuum' },
     { to: '/how-it-works', label: 'How it works', icon: 'help' },
   ],
   future: [
-    { to: '/future', label: 'Terminal', icon: 'terminal', end: true },
-    { to: '/future/new', label: 'Run projection', icon: 'project' },
-    { to: '/archive', label: 'Archive', icon: 'archive' },
-    { to: '/continuum', label: 'Continuum', icon: 'continuum' },
+    { to: '/future', label: 'Home', icon: 'terminal', end: true },
+    { to: '/future/new', label: 'Start', icon: 'project' },
+    { to: '/archive', label: 'My cards', icon: 'archive' },
+    { to: '/continuum', label: 'Both sides', icon: 'continuum' },
     { to: '/how-it-works', label: 'How it works', icon: 'help' },
   ],
   portal: [
     { to: '/past', label: 'Time Machine', icon: 'chamber' },
     { to: '/future', label: '2050', icon: 'terminal' },
-    { to: '/archive', label: 'Archive', icon: 'archive' },
+    { to: '/archive', label: 'My cards', icon: 'archive' },
     { to: '/how-it-works', label: 'How it works', icon: 'help' },
   ],
 };

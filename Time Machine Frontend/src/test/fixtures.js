@@ -91,6 +91,12 @@ export const PAST_READING = {
     stages: CATALOG.data.past.stages,
     providerMode: 'mock',
     title: 'Lysander of the Whispering Spire',
+    summary:
+      'In your past life you were Lysander, an archivist of lost constellations. ' +
+      'You lived in the ancient era, in a library cut into a cliff. ' +
+      'You spent your days copying star charts by candlelight. ' +
+      'Once, you stood up to the council and refused to burn a map. ' +
+      'People remembered you as the one who kept the quiet things safe.',
     archetype: { id: 'sage', name: 'The Sage', description: 'Keeper of truths.' },
     imaginedSetting: { era: 'ancient', description: 'Ancient Era — a cliffside observatory' },
     celestialSignature: {
@@ -100,7 +106,14 @@ export const PAST_READING = {
       mythicRealm: 'The Obsidian Depths',
       symbolicThemes: ['Depth'],
     },
-    profileSummary: { preferredName: 'Aria', hasReferencePhoto: false },
+    profileSummary: {
+      preferredName: 'Aria',
+      selectedSign: 'Scorpio',
+      dateOfBirth: '1996-10-31',
+      birthTime: '14:05',
+      birthplace: 'Hyderabad, India',
+      hasReferencePhoto: false,
+    },
     characterProfile: {
       characterName: 'Lysander of the Whispering Spire',
       occupation: 'Archivist of Lost Constellations',
@@ -137,10 +150,23 @@ export const FUTURE_READING = {
     stages: CATALOG.data.future.stages,
     providerMode: 'mock',
     title: 'Ori Lindqvist — Flight Director',
+    summary:
+      'In 2050 you are 54 years old and working as a flight director. ' +
+      'You live on a ring that turns four hundred kilometres above the sea. ' +
+      'Most of your day is spent deciding what a machine should not decide alone. ' +
+      'The work you are known for took four years and cost you a friendship. ' +
+      'You are still there, teaching the people who will do it better.',
     archetype: { id: 'navigator', name: 'The Orbital Navigator', description: 'Keeps the road open.' },
     imaginedSetting: { era: '2050', description: 'The Orbital Ring' },
     celestialSignature: { selectedSign: 'Scorpio', element: 'Water' },
-    profileSummary: { preferredName: 'Aria', hasReferencePhoto: false },
+    profileSummary: {
+      preferredName: 'Aria',
+      selectedSign: 'Scorpio',
+      dateOfBirth: '1996-10-31',
+      birthTime: '14:05',
+      birthplace: 'Hyderabad, India',
+      hasReferencePhoto: false,
+    },
     futureProfile: {
       targetYear: 2050,
       personaName: 'Ori Lindqvist',

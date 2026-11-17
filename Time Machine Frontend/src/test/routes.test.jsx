@@ -1,5 +1,6 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter } from 'react-router-dom';
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { AppRouter } from '../router';
@@ -82,59 +83,72 @@ describe('Wizards', () => {
   it('opens the past wizard on its first step', async () => {
     renderRoute('/past/new');
 
-    expect(await screen.findByText('Who is this reading for?')).toBeInTheDocument();
-    expect(screen.getByText('Preferred name')).toBeInTheDocument();
+    expect(await screen.findByText('Tell us about you')).toBeInTheDocument();
+    expect(screen.getByText('Your name')).toBeInTheDocument();
     expect(await screen.findByRole('radio', { name: /Scorpio/ })).toBeInTheDocument();
   });
 
   it('opens the 2050 wizard on its first step', async () => {
     renderRoute('/future/new');
 
-    expect(await screen.findByText('Who are we projecting?')).toBeInTheDocument();
+    expect(await screen.findByText('Tell us about you')).toBeInTheDocument();
     expect(screen.getByText('Date of birth')).toBeInTheDocument();
   });
 });
 
 describe('Results', () => {
-  it('renders a past chronicle with all five chapters', async () => {
+  it('shows the past card with the reader\u2019s own details and one paragraph', async () => {
     renderRoute('/reading/rd_past');
 
-    // The name appears in the title and again in the dossier, which is correct.
-    expect(await screen.findByRole('heading', { level: 1, name: /Lysander of the Whispering Spire/ })).toBeInTheDocument();
-    expect(screen.getByText('Origins & Awakening')).toBeInTheDocument();
-    expect(screen.getByText('The Turning Point')).toBeInTheDocument();
-    expect(screen.getByText('The Quiet Legacy')).toBeInTheDocument();
-    expect(screen.getByText(/Born under the twilight conjunction/)).toBeInTheDocument();
-    expect(screen.getByText(/Where might quiet reflection guide you today/)).toBeInTheDocument();
+    expect(await screen.findByText('Your Past Life Report')).toBeInTheDocument();
+
+    // The card is about the person who filled the form, not the character:
+    // their name, their birthday, their sign.
+    expect(screen.getByText('Aria')).toBeInTheDocument();
+    expect(screen.getByText('31 October 1996')).toBeInTheDocument();
+    expect(screen.getByText('2:05 pm')).toBeInTheDocument();
+    expect(screen.getByText('Hyderabad, India')).toBeInTheDocument();
+    expect(screen.getByText(/Archivist of Lost Constellations/)).toBeInTheDocument();
+
+    expect(screen.getByText('Who you were')).toBeInTheDocument();
+    expect(screen.getByText(/an archivist of lost constellations/)).toBeInTheDocument();
   });
 
-  it('splits generated prose into separate paragraphs', async () => {
+  it('keeps the long chronicle closed until it is asked for', async () => {
+    const user = userEvent.setup();
     renderRoute('/reading/rd_past');
 
-    expect(await screen.findByText('Born under the twilight conjunction.')).toBeInTheDocument();
+    await screen.findByText('Your Past Life Report');
+    expect(screen.queryByText('Origins & Awakening')).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole('button', { name: /Read the long story/ }));
+
+    expect(await screen.findByText('Origins & Awakening')).toBeInTheDocument();
+    expect(screen.getByText('The Turning Point')).toBeInTheDocument();
+    // Prose still splits into real paragraphs once it is on screen.
+    expect(screen.getByText('Born under the twilight conjunction.')).toBeInTheDocument();
     expect(screen.getByText('A second paragraph of origins.')).toBeInTheDocument();
   });
 
-  it('renders a 2050 projection with its dossier, signals and trajectory', async () => {
+  it('puts the 2050 age on the future card, since that is what the picture shows', async () => {
     renderRoute('/reading/rd_future');
 
-    expect(await screen.findByRole('heading', { level: 1, name: /Ori Lindqvist/ })).toBeInTheDocument();
-    expect(screen.getByText('Arrival')).toBeInTheDocument();
-    expect(screen.getByText('The Breakthrough')).toBeInTheDocument();
-    expect(screen.getByText('Momentum Index')).toBeInTheDocument();
-    expect(screen.getByText('2027')).toBeInTheDocument();
-    expect(screen.getByText('Pick the problem nobody wants to own.')).toBeInTheDocument();
+    expect(await screen.findByText('Your 2050 Report')).toBeInTheDocument();
+    expect(screen.getByText('Your age in 2050')).toBeInTheDocument();
+    expect(screen.getByText('54 years old')).toBeInTheDocument();
+    expect(screen.getByText('Your life in 2050')).toBeInTheDocument();
+    expect(screen.getByText(/working as a flight director/)).toBeInTheDocument();
   });
 
   it('themes a 2050 result as the future timeline', async () => {
     renderRoute('/reading/rd_future');
-    await screen.findByRole('heading', { level: 1, name: /Ori Lindqvist/ });
+    await screen.findByText('Your 2050 Report');
     await waitFor(() => expect(document.documentElement.getAttribute('data-timeline')).toBe('future'));
   });
 
   it('explains a reading that is gone instead of failing silently', async () => {
     renderRoute('/reading/rd_missing');
-    expect(await screen.findByText('That reading is not here')).toBeInTheDocument();
+    expect(await screen.findByText('We could not find that card')).toBeInTheDocument();
   });
 });
 
@@ -146,12 +160,12 @@ describe('Supporting routes', () => {
 
   it('renders the continuum empty state when neither half exists', async () => {
     renderRoute('/continuum');
-    expect(await screen.findByText('Nothing to thread together yet')).toBeInTheDocument();
+    expect(await screen.findByText('Nothing to put together yet')).toBeInTheDocument();
   });
 
   it('renders how it works', async () => {
     renderRoute('/how-it-works');
-    expect(await screen.findByText('How a life gets written')).toBeInTheDocument();
+    expect(await screen.findByText('How your card gets made')).toBeInTheDocument();
   });
 
   it('renders privacy and terms', async () => {
@@ -170,6 +184,6 @@ describe('Supporting routes', () => {
 
   it('redirects the old single-timeline wizard route to the past wizard', async () => {
     renderRoute('/reading/new');
-    expect(await screen.findByText('Who is this reading for?')).toBeInTheDocument();
+    expect(await screen.findByText('Tell us about you')).toBeInTheDocument();
   });
 });

@@ -15,22 +15,22 @@ import { Icon } from '../../components/ui/Icon';
 
 const COPY = {
   past: {
-    eyebrow: 'The chamber is open',
-    heading: 'The chart is being read',
-    sub: 'This takes a little under a minute. The chronicle is written chapter by chapter, and the portrait last.',
+    eyebrow: 'The door is open',
+    heading: 'Reading your stars',
+    sub: 'This takes about a minute. We write your story first, then draw your picture.',
     icon: 'hourglass',
     doneIcon: 'bloom',
-    doneHeading: 'Your chronicle is ready',
-    doneAction: 'Read the chronicle',
+    doneHeading: 'Your card is ready',
+    doneAction: 'See my card',
   },
   future: {
-    eyebrow: 'Frame locked',
-    heading: 'Projecting 2050',
-    sub: 'Resolving twenty-five years of trajectory, then the capture. This takes a little under a minute.',
+    eyebrow: 'Age locked in',
+    heading: 'Going to 2050',
+    sub: 'This takes about a minute. We write your story first, then draw your face at your 2050 age.',
     icon: 'radar',
     doneIcon: 'aperture',
-    doneHeading: 'Projection resolved',
-    doneAction: 'Open the projection',
+    doneHeading: 'Your card is ready',
+    doneAction: 'See my card',
   },
 };
 
@@ -79,7 +79,7 @@ export default function RevealScreen() {
       await api.retryReading(readingId);
       toast('Trying again.', { tone: 'info' });
     } catch (retryError) {
-      toast(retryError.message || 'That retry did not go through.', { tone: 'error' });
+      toast(retryError.message || 'That did not work. Please try again.', { tone: 'error' });
     } finally {
       setRetrying(false);
     }
@@ -87,10 +87,10 @@ export default function RevealScreen() {
 
   if (error && !reading) {
     return (
-      <PageShell timeline="portal" title="Reading not found">
+      <PageShell timeline="portal" title="Card not found">
         <div className="container reveal-shell">
           <Icon name="error" size={30} style={{ color: 'var(--color-danger)' }} />
-          <h1 style={{ fontSize: '2rem' }}>That reading could not be found</h1>
+          <h1 style={{ fontSize: '2rem' }}>We could not find that card</h1>
           <p style={{ color: 'var(--ink-muted)', maxWidth: '48ch' }}>
             It may have been deleted, or it may have expired — readings are kept for 30 days.
           </p>
@@ -143,9 +143,9 @@ export default function RevealScreen() {
               transition={{ duration: DURATION.slow, ease: EASE_OUT }}
             >
               <Icon name="error" size={34} style={{ color: 'var(--color-danger)' }} />
-              <h1 className="reveal-heading">Something interrupted it</h1>
+              <h1 className="reveal-heading">Something went wrong</h1>
               <p className="reveal-sub">
-                {reading.errorMessage || 'The generation stopped before it finished.'}
+                {reading.errorMessage || 'We stopped before your card was finished.'}
               </p>
               <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <Button onClick={retry} loading={retrying} icon={<Icon name="retry" size={15} />}>
@@ -211,8 +211,8 @@ export default function RevealScreen() {
               {reading?.providerMode === 'mock' ? (
                 <p className="reveal-note">
                   {reading.degradedReason
-                    ? 'Live generation is unavailable — the portrait will be a placeholder.'
-                    : 'Offline mode — this reading is generated locally, without an AI provider.'}
+                    ? 'We cannot draw a real picture right now, so your card gets a stand-in one.'
+                    : 'Offline mode. Your card is being made on this computer, without the AI.'}
                 </p>
               ) : null}
             </motion.div>

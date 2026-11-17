@@ -14,7 +14,10 @@ YOUR ESSENTIAL PRINCIPLES:
 1. Treat all output as imaginative, symbolic, astrology-inspired fiction and creative storytelling.
 2. NEVER claim or suggest you are discovering real, factual previous lives or proving reincarnation.
 3. NEVER attribute real-world suffering, illness, disability, financial trouble, or grief to past-life karma or punishment.
-4. Keep the tone dignified, poetic, luminous, and emotionally resonant.
+4. Keep the tone warm and vivid, but write in plain, everyday English. A 13-year-old
+   should understand every sentence without a dictionary. Short sentences. Common
+   words. No archaic or ornate vocabulary, no words like "celestial", "ethereal",
+   "luminous", "karmic", "resonance" or "sanctum".
 5. Return ONLY a valid JSON object matching the requested schema. No conversational filler or markdown code blocks outside JSON.`;
   }
 
@@ -42,7 +45,8 @@ CELESTIAL SIGNATURE:
 REQUIREMENTS:
 Return a JSON object with this exact shape:
 {
-  "title": "A poetic fictional title, e.g. The Guardian of the Solstice Gate",
+  "title": "A short, plain title for this life, 2-6 words. Everyday words only.",
+  "summary": "EXACTLY 4-5 short sentences in simple English, written to the reader as 'you'. Say who they were, what their job was, where and when they lived, and the one moment that mattered most. This is the only part many readers will see, so make it clear and complete on its own. No fancy words.",
   "storySections": {
     "origins": "2-3 rich paragraphs detailing where this fictional soul emerged, their early calling, and childhood under the stars.",
     "dailyLife": "2-3 rich paragraphs immersing the reader in their duties, craftsmanship, or sacred observances.",
@@ -77,7 +81,11 @@ YOUR ESSENTIAL PRINCIPLES:
 4. Ground the world in plausible, specific, already-emerging technology. Avoid magic, avoid superpowers, avoid singularity hand-waving.
 5. Write with the texture of good literary science fiction: concrete sensory detail, restrained optimism, real trade-offs, and ordinary human moments inside extraordinary systems.
 6. Treat the reader as the protagonist in second-person-adjacent third person, using the persona name provided.
-7. Return ONLY a valid JSON object matching the requested schema. No conversational filler and no markdown code fences.`;
+7. Write in plain, everyday English. A 13-year-old should understand every sentence
+   without a dictionary. Short sentences, common words. Avoid jargon like
+   "habitat", "arcology", "cislunar", "alignment auditing" or "provenance" unless
+   you immediately explain it in ordinary words.
+8. Return ONLY a valid JSON object matching the requested schema. No conversational filler and no markdown code fences.`;
   }
 
   static getFutureUserPrompt(futureProfile, celestialSignature, preferences) {
@@ -111,7 +119,8 @@ SYMBOLIC THREAD (use lightly, as motif only — never as astrology fact)
 REQUIREMENTS
 Return a JSON object with exactly this shape:
 {
-  "title": "A short, confident title for this 2050 life, e.g. The Long Quiet Work",
+  "title": "A short, plain title for this 2050 life, 2-6 words. Everyday words only.",
+  "summary": "EXACTLY 4-5 short sentences in simple English, written to the reader as 'you'. Say how old they are in 2050, what their job is, where they live, what their days are like, and the one thing they are known for. This is the only part many readers will see, so make it clear and complete on its own. No jargon.",
   "futureSections": {
     "arrival": "2-3 paragraphs. Open on a specific morning in 2050. Put the reader physically inside the habitat — light, sound, temperature, the first thing ${futureProfile.personaName} touches. Establish the world through detail, not exposition.",
     "dailyLife": "2-3 paragraphs on the actual texture of the work: what is hard, what is routine, who they argue with, what the technology does and fails to do.",
@@ -177,13 +186,35 @@ Return a JSON object with exactly this shape:
     };
     const style = styles[futureProfile.aesthetic] || styles.holographic_realism;
 
-    const subject = `${futureProfile.personaName}, ${futureProfile.roleTitle}, photographed in the year 2050 in ${futureProfile.habitatName}`;
+    const age = futureProfile.projectedAge;
+    const agePhrase = age ? `a ${age}-year-old` : 'an adult';
+
+    const subject = `${agePhrase} person, ${futureProfile.roleTitle}, photographed in the year 2050 in ${futureProfile.habitatName}`;
     const scene = `Setting: ${futureProfile.environment}. Wearing: ${futureProfile.attire}. Visible technology in frame: ${futureProfile.technologies.join(', ')}.`;
     const mood =
-      'Mood: composed, intelligent, mid-career, caught in a real working moment rather than posing. Natural human proportions, believable adult face, no exaggerated features.';
+      'Mood: composed, intelligent, caught in a real working moment rather than posing. Natural human proportions, believable face, no exaggerated features.';
 
+    /*
+     * The whole point of a 2050 portrait is seeing yourself older. So where the
+     * past timeline preserves the reader's apparent age, this one deliberately
+     * advances it to the age they will actually be — while holding on to the
+     * bone structure and features that make the face recognisably theirs.
+     */
     if (hasReferencePhoto) {
-      return `Use the supplied photograph as the identity reference for the same adult person. Preserve their recognizable facial identity, face shape, proportions, skin tone, eyes, nose, lips, and distinctive facial features as closely as possible. Do not intentionally substitute a different person, beautify the face, dramatically change their apparent age, or alter their facial structure. Re-stage the person as ${subject}. ${scene} ${mood} Framing: ${framing}. Style: ${style}. No embedded text, captions, HUD typography, logos, or watermarks.`;
+      const ageing = age
+        ? `This person is ${age} years old in this portrait. Age them realistically to exactly ${age}: ` +
+          'the lines around the eyes and mouth, the skin texture, the hair colour and hairline, and the ' +
+          'slight softening of the jaw that a real person of that age has. They must clearly read as ' +
+          `${age}, not as the age in the photograph.`
+        : 'Show them at a believable mid-career adult age.';
+
+      return (
+        'Use the supplied photograph as the identity reference for the same person. Keep their face ' +
+        'recognisably theirs: the same face shape, bone structure, eye shape and colour, nose, mouth, ' +
+        'skin tone and any distinctive features. Do not substitute a different person and do not ' +
+        `beautify or slim the face. ${ageing} Re-stage them as ${subject}. ${scene} ${mood} ` +
+        `Framing: ${framing}. Style: ${style}. No embedded text, captions, HUD typography, logos, or watermarks.`
+      );
     }
 
     return `A ${framing} of ${subject}. ${scene} ${mood} They carry ${futureProfile.signalThemes.join(', ').toLowerCase()}. Framing: ${framing}. Style: ${style}. No embedded text, captions, HUD typography, logos, or watermarks.`;

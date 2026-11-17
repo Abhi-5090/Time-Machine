@@ -20,41 +20,41 @@ const ELEMENTS = ['All', 'Fire', 'Earth', 'Air', 'Water'];
 const DELIVERABLES = [
   {
     icon: 'compass',
-    title: 'A soul archetype',
-    body: 'One of nine figures — the Sage, the Guardian, the Wanderer — drawn from your sign, your chosen themes and nothing else.',
+    title: 'A card with your name on it',
+    body: 'One sheet with your picture, the details you gave us, and a short story about who you were. You can save it or print it.',
   },
   {
     icon: 'hourglass',
-    title: 'A five-chapter chronicle',
-    body: 'Origins, daily life, the turning point, the people who mattered, and how it ended. Written as a life, not as a horoscope.',
+    title: 'A short, simple story',
+    body: 'Four or five lines: who you were, the time you lived in, the work you did, and the one day that mattered most.',
   },
   {
     icon: 'bloom',
-    title: 'A painted portrait',
-    body: 'A cinematic portrait of the person in the story. Share a photograph and your own likeness carries through into it.',
+    title: 'A picture of your old face',
+    body: 'A painted picture of the person in the story. Add a photo and the face will look like yours.',
   },
 ];
 
 const STEPS = [
   {
     icon: 'signature',
-    title: 'Give the chart something to read',
-    body: 'A name you like being called, your birth date, and your sign. Birth time and place are optional and only add texture.',
-  },
-  {
-    icon: 'penNib',
-    title: 'Choose the shape of the story',
-    body: 'An archetype or let the stars pick one. A theme, a genre, and the era you want to wake up in.',
+    title: 'Tell us five things',
+    body: 'Your name, your star sign, and the day, time and place you were born. The time and place are optional.',
   },
   {
     icon: 'identity',
-    title: 'Decide about your face',
-    body: 'Uploading a photograph is entirely optional and requires an explicit, separate consent. Without one, a face is imagined.',
+    title: 'Add a photo, if you want to',
+    body: 'A photo is not needed. Add one and we will use your own face. We ask before we use it, and we delete it with your card.',
+  },
+  {
+    icon: 'penNib',
+    title: 'The stars pick the rest',
+    body: 'You do not choose who you were, where you lived or what you did. Your sign and your birth day decide all of it.',
   },
   {
     icon: 'chronicle',
-    title: 'Read what comes back',
-    body: 'The chronicle arrives chapter by chapter, then the portrait. Keep it, export it, or delete it and every asset with it.',
+    title: 'Take your card home',
+    body: 'Your card shows up in about a minute. Download it as a picture, share the link, or delete it and everything with it.',
   },
 ];
 
@@ -92,7 +92,7 @@ export default function PastLandingPage() {
       timeline="past"
       scrim={false}
       title="Time Machine — Step into your past"
-      description="An imaginative, astrology-inspired chronicle of a life you might have lived, with a portrait of the person who lived it."
+      description="A made-up story about a life you might have lived, on one card, with a picture of the person who lived it."
     >
       <div ref={sceneRef}>
       {/* ── Hero ─────────────────────────────────────────────────────── */}
@@ -100,7 +100,7 @@ export default function PastLandingPage() {
         <div className="container">
           <div className="past-masthead">
             <span>Time Machine</span>
-            <span>Volume I — The Backward Door</span>
+            <span>The door that goes back</span>
             <span>A work of fiction</span>
           </div>
 
@@ -120,15 +120,15 @@ export default function PastLandingPage() {
               </h1>
 
               <p className="past-hero-lede lede">
-                Not provably. Not historically. But give the chart a date and a disposition and it
-                will set down a whole life for you — a name, an era, a profession, one decision that
-                changed everything — and paint the face that lived it.
+                Not for real, and not in any history book. But tell us your star sign and the day you
+                were born, and the stars will give you a whole life — a name, a time, a job, and the one
+                day that changed everything — and draw the face that lived it.
               </p>
 
               <div className="past-hero-actions">
                 <Link to="/past/new" className="btn btn-primary btn-lg">
                   <Icon name="begin" size={15} />
-                  Begin a reading
+                  Start
                   <Icon name="forward" size={14} />
                 </Link>
                 <Link to="/future" className="btn btn-secondary btn-lg">
@@ -138,7 +138,7 @@ export default function PastLandingPage() {
 
               <p className="past-hero-note">
                 <Icon name="shield" size={15} />
-                No account. Nothing shared. Delete it all in one click.
+                No sign-up. Nothing is shared. Delete it all with one click.
               </p>
             </div>
 
@@ -154,8 +154,8 @@ export default function PastLandingPage() {
         <SectionHeading
           split
           eyebrow="What arrives"
-          title="Three things, carefully made"
-          description="Every reading is deterministic from your inputs — the same answers always summon the same soul."
+          title="Three things you get"
+          description="The same answers always give the same life. Your star sign and your birth day decide everything."
         />
 
         <RevealGroup
@@ -189,7 +189,7 @@ export default function PastLandingPage() {
         <Reveal>
           <div className="specimen">
             <div style={{ textAlign: 'center', marginBottom: 'var(--space-6)' }}>
-              <Ornament>Specimen — Chapter III</Ornament>
+              <Ornament>An example</Ornament>
               <h3 style={{ marginTop: 'var(--space-4)', fontSize: 'clamp(1.6rem, 1.3rem + 1.4vw, 2.4rem)' }}>
                 The Turning Point
               </h3>
@@ -237,7 +237,7 @@ export default function PastLandingPage() {
           split
           eyebrow="The twelve"
           title="Every sign opens a different door"
-          description="Hover the dial above, or read them in order. Your sign sets the era, the calling and the name."
+          description="Your sign decides the time you lived in, the work you did and the name you went by."
         />
 
         <div
@@ -306,8 +306,8 @@ export default function PastLandingPage() {
         <SectionHeading
           split
           eyebrow="How it goes"
-          title="Four steps, about two minutes"
-          description="Nothing is required beyond a star sign. Every other answer only sharpens what comes back."
+          title="Two steps, about one minute"
+          description="All we need is your star sign. Everything else is up to you, and the stars pick the rest."
         />
 
         <div className="step-grid">
@@ -343,13 +343,13 @@ export default function PastLandingPage() {
               marginBottom: 'var(--space-6)',
             }}
           >
-            It takes about two minutes to answer, and rather longer to stop thinking about.
+            It takes about a minute to fill in, and a lot longer to stop thinking about.
           </p>
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-3)', justifyContent: 'center' }}>
             <Link to="/past/new" className="btn btn-primary btn-lg">
               <Icon name="begin" size={16} />
-              Begin a reading
+              Start
             </Link>
             <Link to="/how-it-works" className="btn btn-secondary btn-lg">
               <Icon name="book" size={16} />
@@ -366,9 +366,9 @@ export default function PastLandingPage() {
               marginTop: 'var(--space-6)',
             }}
           >
-            <Badge icon={<Icon name="portrait" size={11} />}>Portrait included</Badge>
-            <Badge icon={<Icon name="shield" size={11} />}>Consent required for photos</Badge>
-            <Badge icon={<Icon name="delete" size={11} />}>Deleted on request</Badge>
+            <Badge icon={<Icon name="portrait" size={11} />}>Picture included</Badge>
+            <Badge icon={<Icon name="shield" size={11} />}>We ask before using a photo</Badge>
+            <Badge icon={<Icon name="delete" size={11} />}>Delete it any time</Badge>
           </div>
         </Reveal>
       </section>

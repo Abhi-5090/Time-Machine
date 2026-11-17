@@ -1,0 +1,349 @@
+/* ==========================================================================
+   The report card — one A4 sheet, 794 x 1123 at 96dpi.
+
+   Every length here is a fixed pixel, which is the opposite of how the rest of
+   this app is built, and deliberately so: this element is a sheet of paper, and
+   it is rendered to a PNG at exactly these proportions. A layout that reflowed
+   with the viewport would export differently on a phone than on a laptop, and
+   the whole point of the card is that everyone leaves with the same object.
+
+   The wrapper scales it down to fit; the sheet itself never changes.
+   ========================================================================== */
+
+.sheet-frame {
+  width: 100%;
+  max-width: 794px;
+  margin-inline: auto;
+  /* The sheet is scaled with a transform, which does not affect layout, so the
+     frame is given the scaled height explicitly from JS. */
+  overflow: hidden;
+}
+
+.sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  padding: 54px 58px;
+  background: var(--surface-raised);
+  color: var(--ink);
+  font-family: var(--font-body);
+  box-shadow: var(--shadow-lg);
+  overflow: hidden;
+}
+
+[data-timeline='past'] .sheet {
+  background:
+    radial-gradient(120% 80% at 50% 0%, rgba(255, 252, 240, 0.7), transparent 62%),
+    var(--surface-raised);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+}
+
+[data-timeline='future'] .sheet {
+  background:
+    radial-gradient(90% 55% at 50% 0%, rgba(94, 242, 255, 0.12), transparent 70%),
+    var(--bg-elevated);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-md);
+}
+
+/* A second rule set in from the edge. On the past sheet it reads as a printed
+   border; on the 2050 sheet, as the frame of a display. */
+.sheet-edge {
+  position: absolute;
+  inset: 16px;
+  border: 1px solid var(--rule);
+  pointer-events: none;
+}
+
+[data-timeline='future'] .sheet-edge {
+  border-color: rgba(94, 242, 255, 0.18);
+  clip-path: polygon(0 18px, 18px 0, 100% 0, 100% calc(100% - 18px), calc(100% - 18px) 100%, 0 100%);
+}
+
+/* ── Head ───────────────────────────────────────────────────────────────── */
+
+.sheet-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 24px;
+}
+
+.sheet-brand {
+  font-family: var(--font-label);
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: var(--tracking-label, 0.2em);
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 8px;
+}
+
+.sheet-kind {
+  font-family: var(--font-display);
+  font-size: 36px;
+  font-weight: var(--display-weight, 700);
+  letter-spacing: var(--display-tracking, -0.02em);
+  line-height: 1.04;
+  color: var(--ink);
+  margin: 0;
+}
+
+.sheet-serial {
+  flex: 0 0 auto;
+  text-align: right;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+
+.sheet-serial span {
+  display: block;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+}
+
+.sheet-serial strong {
+  font-size: 15px;
+  letter-spacing: 0.1em;
+  color: var(--ink-soft);
+}
+
+.sheet-rule {
+  height: 3px;
+  margin-top: 18px;
+  background: linear-gradient(90deg, var(--accent), var(--rule) 60%, transparent);
+}
+
+/* ── Portrait and details ───────────────────────────────────────────────── */
+
+.sheet-body {
+  display: grid;
+  grid-template-columns: 290px 1fr;
+  gap: 38px;
+  margin-top: 32px;
+}
+
+.sheet-portrait {
+  width: 290px;
+  height: 386px;
+  margin: 0;
+  overflow: hidden;
+  background: var(--surface-sunken);
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-sm);
+  box-shadow: var(--shadow-md);
+}
+
+.sheet-portrait img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.sheet-portrait__empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  width: 100%;
+  height: 100%;
+  color: var(--ink-muted);
+  font-size: 13px;
+}
+
+[data-timeline='future'] .sheet-portrait {
+  border-color: rgba(94, 242, 255, 0.34);
+  box-shadow: var(--glow-accent);
+}
+
+.sheet-identity {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sheet-eyebrow {
+  font-family: var(--font-label);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+  margin-bottom: 6px;
+}
+
+.sheet-name {
+  font-family: var(--font-display);
+  font-size: 40px;
+  font-weight: var(--display-weight, 700);
+  letter-spacing: var(--display-tracking, -0.02em);
+  line-height: 1.05;
+  color: var(--ink);
+  /* Never break a name mid-word — "Venkatarama / n" is not a name. Leaving
+     overflow visible is also what lets useFittedText detect the overflow and
+     shrink the type until the longest word fits. */
+  overflow-wrap: normal;
+  word-break: keep-all;
+}
+
+.sheet-role {
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--accent);
+}
+
+.sheet-details {
+  margin: 22px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sheet-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--rule);
+}
+
+.sheet-detail:last-child {
+  border-bottom: 0;
+  padding-bottom: 0;
+}
+
+.sheet-detail dt {
+  font-family: var(--font-label);
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+.sheet-detail dd {
+  margin: 0;
+  font-size: 17px;
+  line-height: 1.35;
+  color: var(--ink);
+  overflow-wrap: break-word;
+}
+
+/* ── The paragraph ──────────────────────────────────────────────────────── */
+
+.sheet-story {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  margin-top: 34px;
+  padding-top: 24px;
+  border-top: 1px solid var(--rule);
+}
+
+.sheet-story__heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  margin: 0 0 14px;
+  font-family: var(--font-label);
+  font-size: 13px;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--accent);
+}
+
+.sheet-story__text {
+  font-size: 19px;
+  line-height: 1.72;
+  color: var(--ink-soft);
+  /* Five sentences at this size sit a long way short of the bottom rule, and
+     that white space is what the seal fills. */
+  max-width: 62ch;
+}
+
+/* No drop cap. html-to-image does not render ::first-letter, so a drop cap
+   appeared on screen and vanished from the downloaded PNG — and the PNG is
+   the thing people keep. Screen and file have to be the same sheet. */
+
+/* ── The watermark ────────────────────────────────────────────────────────
+   A certificate does not leave its lower third blank; it carries a stamp.
+   But the paragraph is four to seven lines depending on what was generated,
+   so a stamp laid out in flow either competed with the text for height or ran
+   straight into it. A watermark sits behind the text instead: it fills the
+   space when the story is short, and simply disappears under it when the
+   story is long. Decoration only, and hidden from assistive technology.    */
+
+.sheet-watermark {
+  position: absolute;
+  right: 46px;
+  bottom: 104px;
+  z-index: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 190px;
+  height: 190px;
+  font-family: var(--font-display);
+  font-size: 128px;
+  line-height: 1;
+  color: var(--accent);
+  opacity: 0.09;
+  pointer-events: none;
+  user-select: none;
+}
+
+[data-timeline='future'] .sheet-watermark {
+  font-size: 62px;
+  letter-spacing: 0.02em;
+  opacity: 0.11;
+}
+
+/* The text has to win: without an explicit stacking context the watermark
+   would paint over the last lines of a long paragraph. */
+.sheet-story__heading,
+.sheet-story__text {
+  position: relative;
+  z-index: 1;
+}
+
+/* ── Foot ───────────────────────────────────────────────────────────────── */
+
+.sheet-foot {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 26px;
+  padding-top: 16px;
+  border-top: 1px solid var(--rule);
+}
+
+.sheet-foot__note {
+  max-width: 54ch;
+  font-size: 11.5px;
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+
+.sheet-foot__mark {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 0 0 auto;
+  font-family: var(--font-label);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-muted);
+}
+
+/* No media queries below this point, on purpose. The sheet is scaled, never
+   reflowed, so a breakpoint here would make the downloaded PNG depend on the
+   width of the browser that downloaded it. */

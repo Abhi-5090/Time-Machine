@@ -78,6 +78,7 @@ export class OpenAITextProvider extends TextProvider {
 
     return {
       title: parsed.title || `${characterProfile.characterName} — ${characterProfile.occupation}`,
+      summary: parsed.summary || '',
       storySections: {
         origins: parsed.storySections.origins || '',
         dailyLife: parsed.storySections.dailyLife || '',
@@ -106,6 +107,7 @@ export class OpenAITextProvider extends TextProvider {
 
     return {
       title: parsed.title || `${futureProfile.personaName} — ${futureProfile.roleTitle}`,
+      summary: parsed.summary || '',
       futureSections: {
         arrival: parsed.futureSections.arrival || '',
         dailyLife: parsed.futureSections.dailyLife || '',

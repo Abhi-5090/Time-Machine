@@ -69,24 +69,24 @@ export default function ArchivePage() {
     forgetReading(entry.readingId);
     try {
       await api.deleteReading(entry.readingId);
-      toast('Deleted from this device and from the server.', { tone: 'success' });
+      toast('Deleted from this device and from our server.', { tone: 'success' });
     } catch {
       // The local entry is gone either way; say what actually happened.
-      toast('Removed from this device. The server copy will expire on its own.', { tone: 'info' });
+      toast('Removed from this device. The saved copy will go away on its own.', { tone: 'info' });
     }
   };
 
   return (
     <PageShell
       timeline="portal"
-      title="Archive — Time Machine"
-      description="Every reading and projection made on this device."
+      title="My cards — Time Machine"
+      description="Every card you have made on this device."
     >
       <div className="container" style={{ paddingBlock: 'var(--space-8)' }}>
         <SectionHeading
           eyebrow="This device"
-          title="The archive"
-          description="Readings are kept on the server for 30 days. This list is stored only in this browser — clear it and the links are gone, even if the readings have not expired yet."
+          title="My cards"
+          description="We keep your cards for 30 days. This list lives only in this browser, so if you clear it the links are gone, even if the cards are still there."
         />
 
         {hasPair ? (
@@ -107,7 +107,7 @@ export default function ArchivePage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-4)' }}>
               <LottieIcon name="orbit" size={40} primary="--accent" secondary="--accent-2" />
               <div>
-                <h3 style={{ fontSize: '1.2rem' }}>You have both halves</h3>
+                <h3 style={{ fontSize: '1.2rem' }}>You have both sides</h3>
                 <p style={{ color: 'var(--ink-muted)', fontSize: '0.88rem' }}>
                   Read them as one life, end to end.
                 </p>
@@ -159,7 +159,7 @@ export default function ArchivePage() {
           <EmptyState
             icon={<Icon name="archive" size={28} style={{ color: 'var(--ink-muted)' }} />}
             title="Nothing here yet"
-            description="Readings you make will appear here so you can come back to them. Nothing is stored anywhere but this browser."
+            description="Cards you make show up here so you can come back to them. Nothing is saved anywhere but this browser."
             action={
               <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <Link to="/past/new" className="btn btn-secondary">
@@ -239,7 +239,7 @@ export default function ArchivePage() {
                     </div>
 
                     <h3 style={{ fontSize: '1.15rem', lineHeight: 1.25 }}>
-                      {entry.title || entry.name || 'Untitled reading'}
+                      {entry.title || entry.name || 'Card with no name'}
                     </h3>
 
                     {entry.archetype ? (
@@ -283,8 +283,8 @@ export default function ArchivePage() {
       <Dialog
         open={Boolean(confirming)}
         onClose={() => setConfirming(null)}
-        title="Delete this reading?"
-        description="The chronicle, the portrait and any photograph you shared will be removed from the server. This cannot be undone."
+        title="Delete this card?"
+        description="Your card, the picture and any photo you shared will be deleted. You cannot get them back."
         footer={
           <>
             <Button variant="ghost" onClick={() => setConfirming(null)}>
@@ -306,7 +306,7 @@ export default function ArchivePage() {
         open={clearing}
         onClose={() => setClearing(false)}
         title="Clear this device's list?"
-        description="This only forgets the links. The readings themselves stay on the server until they expire, but you will not be able to find them again."
+        description="This only forgets the links. Your cards stay on our server until they expire, but you will not be able to find them again."
         footer={
           <>
             <Button variant="ghost" onClick={() => setClearing(false)}>
@@ -317,7 +317,7 @@ export default function ArchivePage() {
               onClick={() => {
                 clearArchive();
                 setClearing(false);
-                toast('Archive cleared on this device.', { tone: 'info' });
+                toast('List cleared on this device.', { tone: 'info' });
               }}
             >
               Clear the list

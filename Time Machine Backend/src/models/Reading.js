@@ -23,11 +23,20 @@ const ReadingSchema = new mongoose.Schema(
       index: true,
     },
 
+    /*
+     * What the report card prints about the reader themselves. The birth
+     * details are here rather than only on the owner record because the card
+     * is the output: it names the person, and a card that cannot state whose
+     * card it is has no reason to exist.
+     */
     profileSummary: {
       preferredName: String,
       selectedSign: String,
       zodiacInputMode: String,
       derivedSign: String,
+      dateOfBirth: String,
+      birthTime: String,
+      birthplace: String,
       hasReferencePhoto: { type: Boolean, default: false },
     },
 
@@ -68,12 +77,16 @@ const ReadingSchema = new mongoose.Schema(
     degradedReason: { type: String, default: null },
 
     title: { type: String, default: '' },
+    // Four or five plain sentences. For most readers this is the whole output:
+    // it is what the report card shows and what gets downloaded and shared.
+    summary: { type: String, default: '' },
 
     // ───────────────────────── Past timeline payload ─────────────────────────
     celestialSignature: {
       mode: { type: String, default: 'mystical_zodiac' },
       selectedSign: String,
       derivedSign: String,
+      symbol: String,
       symbolicThemes: [String],
       inputMode: String,
       element: String,

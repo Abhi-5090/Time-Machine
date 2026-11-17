@@ -5,17 +5,19 @@ import { Dialog } from '../ui/Dialog';
 import { useToast } from '../ui/Toast';
 import { api } from '../../lib/api';
 import { forgetReading } from '../../lib/archive';
-import { downloadPortrait, exportNodeAsImage, exportNodeAsPdf } from '../../lib/export';
+import { downloadPortrait, exportSheetAsImage, exportSheetAsPdf } from '../../lib/export';
 import { Icon } from '../ui/Icon';
 
 /**
- * Everything a reader can do with a finished reading.
+ * Everything a reader can do with a finished card.
  *
- * Each action manages its own pending state so one slow export does not disable
- * the others, and deletion goes through a confirmation that names exactly what
- * is about to be destroyed.
+ * Saving the card as an image is the primary action and sits first, because it
+ * is the one thing most people at a stall actually want: the sheet, on their
+ * phone, to keep. Each action manages its own pending state so one slow export
+ * does not disable the others, and deletion goes through a confirmation that
+ * names exactly what is about to be destroyed.
  */
-export function ActionBar({ reading, exportRef, title }) {
+export function ActionBar({ reading, sheetRef, title }) {
   const navigate = useNavigate();
   const toast = useToast();
   const [pending, setPending] = useState(null);
@@ -42,8 +44,8 @@ export function ActionBar({ reading, exportRef, title }) {
           title,
           text:
             reading.timeline === 'future'
-              ? 'My 2050, written out in full.'
-              : 'A life I might have lived, written out in full.',
+              ? 'This is me in 2050.'
+              : 'This is the life I might have lived.',
         });
       },
       (result) =>
@@ -56,7 +58,7 @@ export function ActionBar({ reading, exportRef, title }) {
     try {
       await api.deleteReading(reading.readingId);
       forgetReading(reading.readingId);
-      toast('Deleted. Every asset made for this reading is gone.', { tone: 'success' });
+      toast('Deleted. Everything we made for this card is gone.', { tone: 'success' });
       navigate('/archive', { replace: true });
     } catch (error) {
       toast(error.message || 'That could not be deleted.', { tone: 'error' });
@@ -67,7 +69,17 @@ export function ActionBar({ reading, exportRef, title }) {
   return (
     <>
       <div style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-2)' }}>
-        <Button variant="primary" size="sm" onClick={share} loading={pending === 'share'} icon={<Icon name="share" size={14} />}>
+        <Button
+          variant="primary"
+          size="sm"
+          loading={pending === 'png'}
+          icon={<Icon name="download" size={14} />}
+          onClick={() => run('png', () => exportSheetAsImage(sheetRef.current, title), 'Card saved to your downloads.')}
+        >
+          Download card
+        </Button>
+
+        <Button variant="secondary" size="sm" onClick={share} loading={pending === 'share'} icon={<Icon name="share" size={14} />}>
           Share
         </Button>
 
@@ -78,29 +90,19 @@ export function ActionBar({ reading, exportRef, title }) {
             loading={pending === 'portrait'}
             icon={<Icon name="png" size={14} />}
             onClick={() =>
-              run('portrait', () => downloadPortrait(reading.portraitUrl, title), 'Portrait saved.')
+              run('portrait', () => downloadPortrait(reading.portraitUrl, title), 'Picture saved.')
             }
           >
-            Portrait
+            Just the picture
           </Button>
         ) : null}
 
         <Button
           variant="secondary"
           size="sm"
-          loading={pending === 'png'}
-          icon={<Icon name="download" size={14} />}
-          onClick={() => run('png', () => exportNodeAsImage(exportRef.current, title), 'Image saved.')}
-        >
-          PNG
-        </Button>
-
-        <Button
-          variant="secondary"
-          size="sm"
           loading={pending === 'pdf'}
           icon={<Icon name="pdf" size={14} />}
-          onClick={() => run('pdf', () => exportNodeAsPdf(exportRef.current, title), 'PDF saved.')}
+          onClick={() => run('pdf', () => exportSheetAsPdf(sheetRef.current, title), 'PDF saved. It is a full A4 page.')}
         >
           PDF
         </Button>
@@ -113,10 +115,10 @@ export function ActionBar({ reading, exportRef, title }) {
               loading={pending === 'retry'}
               icon={<Icon name="retry" size={14} />}
               onClick={() =>
-                run('retry', () => api.retryReading(reading.readingId), 'Re-rendering the portrait.')
+                run('retry', () => api.retryReading(reading.readingId), 'Making a new picture for you.')
               }
             >
-              Redo portrait
+              Redo the picture
             </Button>
 
             <Button
@@ -135,8 +137,8 @@ export function ActionBar({ reading, exportRef, title }) {
       <Dialog
         open={confirmingDelete}
         onClose={() => setConfirmingDelete(false)}
-        title="Delete this reading?"
-        description="This removes the chronicle, the portrait, any photograph you shared, and the stored profile. It cannot be undone."
+        title="Delete this card?"
+        description="This deletes your card, the picture, the photo you shared and your details. You cannot get it back."
         footer={
           <>
             <Button variant="ghost" onClick={() => setConfirmingDelete(false)}>
@@ -149,8 +151,8 @@ export function ActionBar({ reading, exportRef, title }) {
         }
       >
         <p style={{ color: 'var(--ink-soft)', fontSize: '0.92rem' }}>
-          If you want to keep a copy, export it as a PDF or save the portrait first — the link will
-          stop working for everyone the moment this is deleted.
+          If you want to keep a copy, download the card first. The link will stop working for
+          everyone as soon as you delete it.
         </p>
       </Dialog>
     </>

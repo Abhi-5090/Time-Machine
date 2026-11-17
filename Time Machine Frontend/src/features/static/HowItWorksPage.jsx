@@ -9,31 +9,31 @@ import { Icon } from '../../components/ui/Icon';
 const PIPELINE = [
   {
     icon: 'scan',
-    title: 'Your answers become a seed',
-    body: 'Name, date, sign and preferences are hashed into a single seed. Every structural decision — archetype, era or habitat, name, role, setting — is a pure function of that seed, which is why the same answers always produce the same life.',
+    title: 'Your answers turn into a number',
+    body: 'Your name, your birth day and your star sign are turned into one number. That number picks who you were, where you lived and what you did. This is why the same answers always give you the same life — nothing is random.',
   },
   {
     icon: 'compass',
-    title: 'A skeleton is resolved first',
-    body: 'Before any language model is asked for a sentence, the server has already decided who you are. That keeps readings reproducible, keeps the offline mode consistent with the live one, and means a retry never quietly changes the story.',
+    title: 'We decide the facts first',
+    body: 'Before the AI writes a single word, we have already worked out your name, your job and your home. That way, if you ask for a new picture, the story stays exactly the same.',
   },
   {
     icon: 'hourglass',
-    title: 'The prose is written to that skeleton',
-    body: 'The model receives the resolved facts and a strict brief: imaginative fiction for the past, grounded speculative fiction for 2050, and in both cases explicit instructions never to claim truth about your real life.',
+    title: 'Then the AI writes the story',
+    body: 'The AI gets those facts and clear rules: write a made-up story in plain words, and never claim anything is true about your real life.',
   },
   {
     icon: 'aperture',
-    title: 'The portrait is rendered last',
-    body: 'An image model composes a portrait from the same facts. If you consented to share a photograph, an identity-preserving edit is attempted first so the face stays recognisably yours.',
+    title: 'The picture is drawn last',
+    body: 'The picture is drawn from the same facts. If you added a photo, we start from your own face so the person on the card still looks like you.',
   },
 ];
 
 const PROMISES = [
-  ['No account', 'There is no sign-up, no password and no email. A reading belongs to whoever holds its link and token.'],
-  ['Photos are opt-in twice', 'Once to consent, once to upload. Without both, nothing is sent.'],
-  ['30-day expiry', 'Readings delete themselves automatically. You can delete one sooner at any time.'],
-  ['Nothing is trained on', 'Your photograph is used to render your portrait and for nothing else.'],
+  ['No sign-up', 'No account, no password, no email. Your card belongs to whoever has the link.'],
+  ['We ask twice about photos', 'Once to say yes, once to pick the file. If you skip either, nothing is sent.'],
+  ['Gone in 30 days', 'Cards delete themselves. You can delete yours sooner, any time you like.'],
+  ['We do not train on you', 'Your photo is used to draw your picture, and for nothing else.'],
 ];
 
 export default function HowItWorksPage() {
@@ -41,13 +41,13 @@ export default function HowItWorksPage() {
     <PageShell
       timeline="portal"
       title="How it works — Time Machine"
-      description="What happens between your answers and the chronicle that comes back."
+      description="What happens between your answers and the card that comes back."
     >
       <div className="container" style={{ paddingBlock: 'var(--space-8)' }}>
         <SectionHeading
           eyebrow="Under the hood"
-          title="How a life gets written"
-          description="Both doors run the same pipeline. Only the vocabulary, the prompts and the portrait direction differ."
+          title="How your card gets made"
+          description="Both doors work the same way. Only the words and the picture are different."
           align="center"
         />
 

@@ -1,27 +1,22 @@
-import React, { useRef } from 'react';
+import React, { useRef, useState } from 'react';
 import { useParams, Link, Navigate } from 'react-router-dom';
+import { AnimatePresence, motion } from 'framer-motion';
 import { PageShell } from '../../components/layout/PageShell';
 import { ActionBar } from '../../components/reading/ActionBar';
 import { Skeleton } from '../../components/ui/primitives';
 import { useReading } from '../../lib/useReading';
+import { ReportCard } from './ReportCard';
 import { PastReport } from './PastReport';
 import { FutureReport } from './FutureReport';
-import './results.css';
+import { EASE_OUT, DURATION } from '../../motion/easings';
 import { Icon } from '../../components/ui/Icon';
+import './results.css';
 
 function LoadingReport() {
   return (
-    <div className="report container">
-      <Skeleton width="38%" height={14} />
-      <Skeleton width="72%" height={56} style={{ marginTop: 'var(--space-4)' }} />
-      <div className="report-layout" style={{ marginTop: 'var(--space-7)' }}>
-        <Skeleton height={420} radius="var(--radius-md)" />
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-3)' }}>
-          {Array.from({ length: 9 }).map((_, index) => (
-            // eslint-disable-next-line react/no-array-index-key
-            <Skeleton key={index} width={index % 4 === 3 ? '64%' : '100%'} height={14} />
-          ))}
-        </div>
+    <div className="container" style={{ paddingBlock: 'var(--space-7)' }}>
+      <div className="sheet-frame" style={{ aspectRatio: '794 / 1123' }}>
+        <Skeleton height="100%" radius="var(--radius-sm)" />
       </div>
     </div>
   );
@@ -30,14 +25,18 @@ function LoadingReport() {
 /**
  * The finished reading.
  *
- * Picks the report for the reading's own timeline and themes the whole page to
- * match, so the same URL renders as parchment or as a console depending only on
- * what was generated. A reading still in flight is sent back to the reveal
- * screen rather than shown half-empty.
+ * The card is the output. It carries the portrait, the reader's own details
+ * and the short paragraph, and it is what the download buttons produce — one
+ * sheet, the same on every screen.
+ *
+ * The full chronicle is still generated and still here, folded away behind a
+ * disclosure that starts closed. Someone who wants the nine sections can open
+ * them; nobody has to scroll past them to find the thing they came for.
  */
 export default function ResultsPage() {
   const { readingId } = useParams();
-  const exportRef = useRef(null);
+  const sheetRef = useRef(null);
+  const [showFull, setShowFull] = useState(false);
 
   // Polling stays on: a reader who lands here while a portrait is still being
   // re-rendered should watch it arrive rather than have to refresh.
@@ -45,7 +44,7 @@ export default function ResultsPage() {
 
   if (loading && !reading) {
     return (
-      <PageShell timeline="portal" title="Loading reading…">
+      <PageShell timeline="portal" title="Loading your card…">
         <LoadingReport />
       </PageShell>
     );
@@ -66,17 +65,17 @@ export default function ResultsPage() {
           }}
         >
           <Icon name="error" size={30} style={{ color: 'var(--color-danger)' }} />
-          <h1 style={{ fontSize: '2.2rem' }}>That reading is not here</h1>
+          <h1 style={{ fontSize: '2.2rem' }}>We could not find that card</h1>
           <p style={{ color: 'var(--ink-muted)', maxWidth: '48ch' }}>
-            It may have been deleted, or it may have expired — readings are kept for 30 days and then
-            removed automatically.
+            It may have been deleted, or it may be too old — we keep cards for 30 days and then
+            remove them.
           </p>
           <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap', justifyContent: 'center' }}>
             <Link to="/archive" className="btn btn-secondary">
-              Open the archive
+              See your saved cards
             </Link>
             <Link to="/" className="btn btn-primary">
-              Back to both doors
+              Back to the start
             </Link>
           </div>
         </div>
@@ -89,30 +88,63 @@ export default function ResultsPage() {
   }
 
   const timeline = reading.timeline || 'past';
-  const title =
-    reading.title ||
+  const name =
+    reading.profileSummary?.preferredName?.trim() ||
     (timeline === 'future' ? reading.futureProfile?.personaName : reading.characterProfile?.characterName) ||
-    'Time Machine reading';
+    'Time Machine';
 
   return (
     <PageShell
       timeline={timeline}
-      title={`${title} — ${timeline === 'future' ? '2050' : 'Time Machine'}`}
+      title={`${name} — ${timeline === 'future' ? '2050' : 'Time Machine'}`}
       description={
         timeline === 'future'
-          ? 'A speculative chronicle of one life in the year 2050.'
-          : 'An imaginative chronicle of a life that might have been.'
+          ? 'A made-up story about your life in the year 2050.'
+          : 'A made-up story about a life you might have lived.'
       }
     >
-      <div className="container" style={{ paddingTop: 'var(--space-5)' }}>
-        <div className="report-actions">
-          <ActionBar reading={reading} exportRef={exportRef} title={title} />
+      <div className="container card-page">
+        <div className="card-page__head">
+          <p className="card-page__lede">
+            {timeline === 'future'
+              ? 'Here is your 2050 card. Save it, or show it to a friend.'
+              : 'Here is your past life card. Save it, or show it to a friend.'}
+          </p>
+          <ActionBar reading={reading} sheetRef={sheetRef} title={name} />
         </div>
-      </div>
 
-      {/* The export target: everything inside is what lands in the PNG/PDF. */}
-      <div ref={exportRef}>
-        {timeline === 'future' ? <FutureReport reading={reading} /> : <PastReport reading={reading} />}
+        <ReportCard reading={reading} ref={sheetRef} />
+
+        <div className="card-page__more">
+          <button
+            type="button"
+            className="btn btn-ghost"
+            aria-expanded={showFull}
+            onClick={() => setShowFull((open) => !open)}
+          >
+            <Icon name={showFull ? 'close' : 'book'} size={14} />
+            {showFull ? 'Hide the long story' : 'Read the long story'}
+          </button>
+
+          <AnimatePresence initial={false}>
+            {showFull ? (
+              <motion.div
+                key="full"
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0, transition: { duration: DURATION.fast } }}
+                transition={{ duration: DURATION.base, ease: EASE_OUT }}
+                style={{ overflow: 'hidden' }}
+              >
+                {timeline === 'future' ? (
+                  <FutureReport reading={reading} />
+                ) : (
+                  <PastReport reading={reading} />
+                )}
+              </motion.div>
+            ) : null}
+          </AnimatePresence>
+        </div>
       </div>
     </PageShell>
   );

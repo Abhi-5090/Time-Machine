@@ -12,6 +12,12 @@ export class MockTextProvider extends TextProvider {
 
     return {
       title: `${name} — ${occupation}`,
+      summary:
+        `In your past life you were ${name}, a ${occupation.toLowerCase()}. ` +
+        `You lived in the ${era.toLowerCase()}, in ${setting.charAt(0).toLowerCase()}${setting.slice(1)}. ` +
+        'Your days were spent keeping records, helping travellers, and watching the sky. ' +
+        'The moment that mattered most was when you stood up to the local rulers and stopped a fight ' +
+        'over food and water. People remembered you as someone who stayed calm when it was hard to.',
       storySections: {
         origins: `In the ${era}, beneath a sky painted with untamed constellations, the story of ${name} began. Born into a lineage that honored the rhythm of the tides and the whispering winds of ${sign}, they were drawn early to the quiet thresholds where mortals sought meaning. Elders spoke of their attentive gaze—a quiet presence that noticed the subtle geometry of leaves, the turning of seasons, and the unspoken grief of passing travelers.
 
@@ -58,6 +64,12 @@ When their final earthly season arrived, it is said that the night sky burned wi
 
     return {
       title: `${name} — ${role}`,
+      summary:
+        `In 2050 you are ${futureProfile.projectedAge ? futureProfile.projectedAge + ' years old and ' : ''}working as ${role.toLowerCase()}. ` +
+        `You live in ${habitat.toLowerCase()}, and most days you spend at ${environment.charAt(0).toLowerCase()}${environment.slice(1)}. ` +
+        'Your job is mostly making the hard calls a machine should not make on its own. ' +
+        'The work you are known for took four years and cost you more than you expected. ' +
+        'You are still at it, teaching the people who will do it better than you.',
       futureSections: {
         arrival: `The alarm in 2050 is not a sound. It is a slow warming of the wall beside the bed, the colour of a sunrise that ${habitat} will not actually produce for another forty minutes. ${name} is awake before it finishes. That has not changed in twenty-five years.
 

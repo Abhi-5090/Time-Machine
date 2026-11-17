@@ -6,11 +6,11 @@ import { Icon } from '../ui/Icon';
 
 const DISCLAIMERS = {
   past:
-    'Time Machine writes imaginative, astrology-inspired fiction. It does not claim to prove reincarnation, diagnose anything, or report verified history.',
+    'Time Machine makes up stories from your star sign. It does not prove past lives, it is not real history, and it is not medical advice.',
   future:
-    '2050 is speculative fiction. It is not a forecast and not advice about your real health, finances, relationships, or future.',
+    'The 2050 side is a made-up story. It is not a real prediction, and it is not advice about your health, your money, your job or the people in your life.',
   portal:
-    'Everything here is fiction, on both sides of now. Nothing on this site is a prediction, a diagnosis, or advice.',
+    'Every story here is made up, on both sides. Nothing on this site is a real prediction or any kind of advice.',
 };
 
 /** A labelled column of icon-led links. */
@@ -81,12 +81,12 @@ export function Footer() {
         </div>
 
         <FooterNav
-          label="Journeys"
+          label="Go to"
           links={[
             { to: '/past', label: 'Time Machine', icon: 'chamber' },
             { to: '/future', label: '2050', icon: 'terminal' },
-            { to: '/continuum', label: 'Continuum', icon: 'continuum' },
-            { to: '/archive', label: 'Archive', icon: 'archive' },
+            { to: '/continuum', label: 'Both sides', icon: 'continuum' },
+            { to: '/archive', label: 'My cards', icon: 'archive' },
           ]}
         />
 
@@ -112,9 +112,9 @@ export function Footer() {
           color: 'var(--ink-muted)',
         }}
       >
-        <span>© {year} Time Machine. A work of fiction, in both directions.</span>
+        <span>© {year} Time Machine. Every story here is made up, on both sides.</span>
         <span style={{ fontFamily: 'var(--font-mono)' }}>
-          {timeline.isFuture ? 'FRAME // 2050' : timeline.isPast ? 'Ad astra per memoriam' : 'Two doors, one now'}
+          {timeline.isFuture ? 'The year 2050' : timeline.isPast ? 'A life before this one' : 'Two doors, one you'}
         </span>
       </div>
     </footer>

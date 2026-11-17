@@ -49,7 +49,7 @@ function Panel({ timeline, reading, loading, fallbackHref, fallbackLabel }) {
           secondary="--ink-muted"
         />
         <h3 style={{ fontSize: '1.3rem', marginTop: 'var(--space-4)' }}>
-          {timeline === 'future' ? 'No projection yet' : 'No chronicle yet'}
+          {timeline === 'future' ? 'No 2050 card yet' : 'No past life card yet'}
         </h3>
         <p style={{ color: 'var(--ink-muted)', fontSize: '0.9rem', marginBlock: 'var(--space-3) var(--space-5)' }}>
           The Continuum needs one of each to thread together.
@@ -76,7 +76,7 @@ function Panel({ timeline, reading, loading, fallbackHref, fallbackLabel }) {
       </div>
 
       <p className="eyebrow" style={{ marginTop: 'var(--space-5)' }}>
-        {timeline === 'future' ? 'Ahead · 2050' : 'Behind · the chronicle'}
+        {timeline === 'future' ? 'Ahead · 2050' : 'Behind · your past life'}
       </p>
 
       <h2 style={{ fontSize: 'clamp(1.6rem, 1.3rem + 1.4vw, 2.3rem)', marginBlock: 'var(--space-2) var(--space-3)' }}>
@@ -135,12 +135,12 @@ export default function ContinuumPage() {
 
   if (!pair.past && !pair.future) {
     return (
-      <PageShell timeline="portal" title="Continuum — Time Machine">
+      <PageShell timeline="portal" title="Both sides — Time Machine">
         <div className="container" style={{ paddingBlock: 'var(--space-9)' }}>
           <EmptyState
             icon={<Icon name="continuum" size={28} style={{ color: 'var(--ink-muted)' }} />}
-            title="Nothing to thread together yet"
-            description="The Continuum sets a past-life chronicle and a 2050 projection either side of now. Make one of each and it assembles itself."
+            title="Nothing to put together yet"
+            description="This page puts your past life card and your 2050 card side by side. Make one of each and it builds itself."
             action={
               <div style={{ display: 'flex', gap: 'var(--space-3)', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <Link to="/past/new" className="btn btn-secondary">
@@ -160,14 +160,14 @@ export default function ContinuumPage() {
   return (
     <PageShell
       timeline="portal"
-      title="Continuum — Time Machine"
-      description="Your past-life chronicle and your 2050 projection, read as one life."
+      title="Both sides — Time Machine"
+      description="Your past life card and your 2050 card, read as one long life."
     >
       <div className="container" style={{ paddingBlock: 'var(--space-8)' }}>
         <SectionHeading
           eyebrow="Both directions"
-          title="The Continuum"
-          description="One life, read end to end. Nothing new is written here — this is the two chronicles you already have, set either side of now."
+          title="Both sides of you"
+          description="One life, start to finish. Nothing new is written here — these are the two cards you already have, placed either side of today."
           align="center"
         />
 

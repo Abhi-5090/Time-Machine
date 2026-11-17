@@ -19,6 +19,61 @@ import { isProviderLive, getProviderHealth } from './providerHealth.js';
 
 const MAX_RETRIES = 3;
 
+/** Splices a stored fragment into mid-sentence prose without a stray capital. */
+function midSentence(value) {
+  const text = String(value || '').trim();
+  if (!text) return '';
+  // Leave genuine proper nouns alone: only the "A monumental citadel" case,
+  // where the second word is lowercase, is a sentence-start capital.
+  const [first, second] = text.split(/\s+/);
+  if (second && second[0] === second[0].toLowerCase()) {
+    return text[0].toLowerCase() + text.slice(1);
+  }
+  return text;
+}
+
+
+/**
+ * The calendar day, as YYYY-MM-DD.
+ *
+ * Joi casts `dateOfBirth` to a Date, and `String(date)` would give a locale
+ * string, so the card would print a day shifted by whatever timezone the
+ * server happens to run in. A date-only ISO string parses to UTC midnight, so
+ * taking the UTC day back out returns exactly the day the reader typed.
+ */
+function isoDay(value) {
+  if (!value) return '';
+  if (value instanceof Date) {
+    return Number.isNaN(value.getTime()) ? '' : value.toISOString().slice(0, 10);
+  }
+  return String(value).slice(0, 10);
+}
+
+/*
+ * The report card always needs a summary, so neither timeline depends on the
+ * model returning one. These read as plainly as the generated version.
+ */
+function buildPastSummary(character) {
+  return (
+    `In your past life you were ${character.characterName}, working as a ${String(character.occupation).toLowerCase()}. ` +
+    `You lived in the ${String(character.eraName).toLowerCase()}, in ${midSentence(character.setting)}. ` +
+    `People knew you for being ${character.characterTraits.join(' and ').toLowerCase()}. ` +
+    `The hardest part of your life was ${String(character.coreConflict).toLowerCase()}. ` +
+    'What you left behind was not a monument, but the people you taught.'
+  );
+}
+
+function buildFutureSummary(persona) {
+  const age = persona.projectedAge ? `${persona.projectedAge} years old and ` : '';
+  return (
+    `In 2050 you are ${age}working as ${String(persona.roleTitle).toLowerCase()}. ` +
+    `You live in ${String(persona.habitatName).toLowerCase()}, and you spend most days at ${midSentence(persona.environment)}. ` +
+    `The tools you use every day include ${persona.technologies.slice(0, 2).join(' and ').toLowerCase()}. ` +
+    `The hard part is ${String(persona.definingTension).toLowerCase()}. ` +
+    'You are still working on the part that is not finished yet.'
+  );
+}
+
 function appError(message, code, statusCode) {
   const err = new Error(message);
   err.code = code;
@@ -157,6 +212,9 @@ export class ReadingService {
         selectedSign: effectiveSign,
         zodiacInputMode: profile.zodiacInputMode,
         derivedSign: alignment.derivedSign,
+        dateOfBirth: isoDay(profile.dateOfBirth),
+        birthTime: profile.birthTime || '',
+        birthplace: profile.birthplace || '',
         hasReferencePhoto: Boolean(profile.photoAssetId && consent.photoProcessing),
       },
       status: 'processing',
@@ -168,6 +226,9 @@ export class ReadingService {
         mode: 'mystical_zodiac',
         selectedSign: effectiveSign,
         derivedSign: alignment.derivedSign,
+        // The glyph travels with the reading so the report card can print it
+        // beside the sign without fetching the whole catalogue to find it.
+        symbol: zodiacData?.symbol || '',
         symbolicThemes: zodiacData?.symbolicThemes || ['Wisdom', 'Mystery'],
         inputMode: profile.zodiacInputMode,
         element: zodiacData?.element || 'Celestial',
@@ -289,6 +350,7 @@ export class ReadingService {
     );
 
     reading.title = story.title || `${characterProfile.characterName} — ${characterProfile.occupation}`;
+    reading.summary = story.summary || buildPastSummary(characterProfile);
     reading.storySections = story.storySections;
     reading.symbolicKarmicThemes = story.symbolicKarmicThemes?.length
       ? story.symbolicKarmicThemes
@@ -336,6 +398,7 @@ export class ReadingService {
     );
 
     reading.title = chronicle.title || `${futureProfile.personaName} — ${futureProfile.roleTitle}`;
+    reading.summary = chronicle.summary || buildFutureSummary(futureProfile);
     reading.futureSections = chronicle.futureSections;
     reading.futureSignalsNarrative = chronicle.futureSignalsNarrative || [];
     reading.presentDayDirective =

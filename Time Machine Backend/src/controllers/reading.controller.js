@@ -20,6 +20,7 @@ function serializeReading(reading, { isOwner = false } = {}) {
     providerMode: reading.providerMode,
     degradedReason: reading.degradedReason || null,
     title: reading.title,
+    summary: reading.summary || '',
     archetype: reading.archetype,
     imaginedSetting: reading.imaginedSetting,
     celestialSignature: reading.celestialSignature,

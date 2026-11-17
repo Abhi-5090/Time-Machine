@@ -8,26 +8,26 @@
 export const PAST_STAGES = [
   {
     id: 'preparing_profile',
-    label: 'Reading the chart',
-    detail: 'Aligning your star sign, birth details and chosen themes.',
+    label: 'Reading your stars',
+    detail: 'Looking at your star sign and the day you were born.',
     progress: 25,
   },
   {
     id: 'shaping_character',
-    label: 'Shaping the soul',
-    detail: 'Drawing out an archetype, an era and a name from the alignment.',
+    label: 'Finding who you were',
+    detail: 'Working out your name, your job and the time you lived in.',
     progress: 45,
   },
   {
     id: 'writing_story',
-    label: 'Writing the chronicle',
-    detail: 'Setting down five chapters of a life that never happened.',
+    label: 'Writing your story',
+    detail: 'Putting your past life into words.',
     progress: 70,
   },
   {
     id: 'creating_portrait',
-    label: 'Painting the portrait',
-    detail: 'Committing the likeness to canvas under old light.',
+    label: 'Painting your picture',
+    detail: 'Drawing your face as it looked back then.',
     progress: 90,
   },
 ];
@@ -35,26 +35,26 @@ export const PAST_STAGES = [
 export const FUTURE_STAGES = [
   {
     id: 'calibrating_signal',
-    label: 'Calibrating signal',
-    detail: 'Locking your inputs to the 2050 reference frame.',
+    label: 'Setting the year to 2050',
+    detail: 'Working out how old you will be and what has changed.',
     progress: 25,
   },
   {
     id: 'projecting_persona',
-    label: 'Projecting persona',
-    detail: 'Resolving a role, a habitat and twenty-five years of trajectory.',
+    label: 'Finding who you become',
+    detail: 'Working out your job and the place you live in.',
     progress: 45,
   },
   {
     id: 'composing_chronicle',
-    label: 'Composing chronicle',
-    detail: 'Writing one life, from the morning of the arrival to the horizon.',
+    label: 'Writing your story',
+    detail: 'Putting one day in your 2050 life into words.',
     progress: 70,
   },
   {
     id: 'rendering_portrait',
-    label: 'Rendering portrait',
-    detail: 'Resolving the capture at 2050 fidelity.',
+    label: 'Making your picture',
+    detail: 'Drawing your face at the age you will be in 2050.',
     progress: 90,
   },
 ];

@@ -19,18 +19,18 @@ import { Icon } from '../../components/ui/Icon';
 const OUTPUTS = [
   {
     icon: 'radar',
-    title: 'A persona and a post',
-    body: 'One of nine 2050 archetypes, with a specific job title, a habitat and the technology you handle every day.',
+    title: 'A card with your name on it',
+    body: 'One sheet with your 2050 picture, your own details, and a short story about the life you are living then.',
   },
   {
     icon: 'scan',
-    title: 'A chronicle in five parts',
-    body: 'Arrival, daily life, the breakthrough and what it cost, the people who matter, and the horizon past 2050.',
+    title: 'A short, simple story',
+    body: 'Four or five lines: your job, the place you live, what your days look like, and the work you are known for.',
   },
   {
     icon: 'aperture',
-    title: 'A capture at 2050 fidelity',
-    body: 'An environmental portrait in your chosen aesthetic. Share a photograph and the face stays yours.',
+    title: 'A picture of you, aged up',
+    body: 'If you were born in 2005 you are 45 in 2050, and the picture shows you at 45. Add a photo and the face stays yours.',
   },
 ];
 
@@ -47,9 +47,9 @@ const TICKER = [
 const PREVIEW_TRAJECTORY = [
   { year: '2027', title: 'The unglamorous start', body: 'The sideways move that turns out to be the only door.' },
   { year: '2031', title: 'First real responsibility', body: 'Something that breaks if you handle it badly.' },
-  { year: '2036', title: 'The pivot', body: 'Expensive, disruptive, and the hinge everything after depends on.' },
-  { year: '2042', title: 'The breakthrough', body: 'The problem nobody else wanted to own.' },
-  { year: '2050', title: 'Where the signal lands', body: 'The life that was built out of all of it.' },
+  { year: '2036', title: 'The big change', body: 'Costly, messy, and the thing everything after depends on.' },
+  { year: '2042', title: 'The big win', body: 'The problem nobody else wanted to take on.' },
+  { year: '2050', title: 'Where you end up', body: 'The life that got built out of all of it.' },
 ];
 
 export default function FutureLandingPage() {
@@ -102,7 +102,7 @@ export default function FutureLandingPage() {
       timeline="future"
       scrim={false}
       title="2050 — Do you want to know about your future?"
-      description="Twenty-five years forward. A role, a habitat, a breakthrough and what it cost — written as grounded speculative fiction, with a portrait to match."
+      description="The year 2050, with you in it: your job, where you live, and a picture of you at the age you will be."
     >
       <div ref={sceneRef}>
       {/* ── Hero ─────────────────────────────────────────────────────── */}
@@ -115,7 +115,7 @@ export default function FutureLandingPage() {
             transition={{ duration: DURATION.slow, ease: EASE_OUT }}
             style={{ marginBottom: 'var(--space-5)' }}
           >
-            <ScrambleText text="SIGNAL ACQUIRED — PROJECTION READY" />
+            <ScrambleText text="SIGNAL FOUND — READY WHEN YOU ARE" />
           </motion.p>
 
           <h1 className="future-hero-year display-hero">
@@ -143,9 +143,9 @@ export default function FutureLandingPage() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: DURATION.scene, ease: EASE_OUT, delay: 0.6 }}
           >
-            Twenty-five years forward. Not a forecast — a piece of grounded speculative fiction with
-            you in it: where you live, what you build, who you answer to, and the one decision in the
-            early forties that the rest of it hangs on.
+            Twenty-five years from now. This is not a real prediction — it is a story with you in it:
+            where you live, the work you do, and a picture of your face at the age you will be when
+            the year turns over.
           </motion.p>
 
           <motion.div
@@ -155,11 +155,11 @@ export default function FutureLandingPage() {
             style={{ display: 'flex', flexWrap: 'wrap', gap: 'var(--space-3)', marginBlock: 'var(--space-6)' }}
           >
             <Link to="/future/new" className="btn btn-primary btn-lg">
-              Run the projection
+              Show me 2050
               <Icon name="forward" size={16} />
             </Link>
             <Link to="/past" className="btn btn-secondary btn-lg">
-              Or travel backward
+              Or go back in time
             </Link>
           </motion.div>
 
@@ -207,9 +207,9 @@ export default function FutureLandingPage() {
       {/* ── Outputs ──────────────────────────────────────────────────── */}
       <section className="container" style={{ paddingBlock: 'var(--space-9)' }}>
         <SectionHeading
-          eyebrow="Return payload"
-          title="Three artefacts from the far side"
-          description="Every projection is deterministic from your inputs. The same answers always resolve the same life."
+          eyebrow="What you get"
+          title="Three things you get"
+          description="The same answers always give the same life. Your birth day decides all of it."
         />
 
         <RevealGroup className="grid-auto" style={{ marginTop: 'var(--space-7)' }}>
@@ -239,8 +239,8 @@ export default function FutureLandingPage() {
       <section className="container" style={{ paddingBlock: 'var(--space-8)' }}>
         <SectionHeading
           eyebrow="Where people live"
-          title="Six habitats, one of them yours"
-          description="Choose where 2050 finds you, or let the projection resolve it from everything else you answer."
+          title="Six places to live, one of them yours"
+          description="You do not pick one. Your birth day decides where 2050 finds you."
         />
 
         <RevealGroup className="grid-auto" style={{ marginTop: 'var(--space-7)' }}>
@@ -275,7 +275,7 @@ export default function FutureLandingPage() {
             <SectionHeading
               eyebrow="Twenty-five years"
               title="It does not start in 2050"
-              description="Your projection comes with the whole trajectory — the detours, the pivot, and the year the work finally lands."
+              description="Your card comes with the whole road — the wrong turns, the big change, and the year the work finally pays off."
             />
             <div
               style={{
