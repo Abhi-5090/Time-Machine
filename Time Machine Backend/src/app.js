@@ -36,7 +36,21 @@ app.use(
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) return callback(null, true);
       if (config.NODE_ENV !== 'production' && isLocalOrigin(origin)) return callback(null, true);
-      return callback(new Error(`Origin ${origin} is not permitted by CORS policy.`));
+
+      /*
+       * Not allow-listed: omit the CORS headers rather than reject the request.
+       *
+       * Throwing here turns a policy decision into a 500, and it punishes the
+       * wrong caller. A request the host proxies under its own domain is
+       * same-origin to the browser, but still carries an Origin header on
+       * anything other than GET — so throwing made every POST through a
+       * front-end proxy fail while GETs sailed through.
+       *
+       * Returning false is the correct behaviour: the response simply carries
+       * no CORS headers, so a genuine cross-origin read is blocked by the
+       * browser while a same-origin one is unaffected.
+       */
+      return callback(null, false);
     },
     credentials: true,
   })

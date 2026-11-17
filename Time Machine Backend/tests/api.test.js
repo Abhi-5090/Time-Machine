@@ -69,3 +69,30 @@ describe('API Routes & Middleware', () => {
     expect(validateImageMagicBytes(invalid)).toBe(false);
   });
 });
+
+describe('CORS policy', () => {
+  /*
+   * A request the front end proxies under its own domain is same-origin to the
+   * browser, but still carries an Origin header on anything other than GET.
+   * Rejecting an unknown origin by throwing turned that into a 500 and broke
+   * every POST made through a hosting rewrite.
+   */
+  it('does not fail a request that carries an unrecognised Origin', async () => {
+    const res = await request(app)
+      .get('/api/v1/catalog')
+      .set('Origin', 'https://some-front-end.example.com');
+
+    expect(res.status).toBe(200);
+    // …and does not hand that origin permission to read the response.
+    expect(res.headers['access-control-allow-origin']).toBeUndefined();
+  });
+
+  it('allows an origin on the configured list', async () => {
+    const res = await request(app)
+      .get('/api/v1/catalog')
+      .set('Origin', 'http://localhost:5173');
+
+    expect(res.status).toBe(200);
+    expect(res.headers['access-control-allow-origin']).toBe('http://localhost:5173');
+  });
+});
