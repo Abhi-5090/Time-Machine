@@ -2,12 +2,10 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "rewrites": [
     {
-      "comment": "Proxy the API through this origin so the browser never makes a cross-origin call. Replace the host with your Render URL.",
       "source": "/api/:path*",
       "destination": "https://time-machine-jxw0.onrender.com/api/:path*"
     },
     {
-      "comment": "Client-side routing: every other path serves the app shell.",
       "source": "/((?!assets/).*)",
       "destination": "/index.html"
     }
