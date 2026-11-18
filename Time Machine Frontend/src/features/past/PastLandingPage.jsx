@@ -63,8 +63,11 @@ export default function PastLandingPage() {
   const [element, setElement] = useState('All');
 
   const sceneRef = useScrollScene(() => {
-    // The hero gives way as the reader leaves it.
-    heroRecede('.past-hero .container > div');
+    // The hero gives way as the reader leaves it, measured against the whole
+    // section. The selector matches two children — the masthead and the hero
+    // spread — so the trigger is named rather than inferred from the first of
+    // them, which is a thin rule and would compress the fade into a flicker.
+    heroRecede('.past-hero .container > div', { trigger: '.past-hero' });
 
     // The masthead rules draw across as the page settles.
     gsap.fromTo(

@@ -6,39 +6,50 @@ import { api } from '../../lib/api';
 import { useToast } from '../../components/ui/Toast';
 import { EASE_OUT, DURATION } from '../../motion/easings';
 import { Icon } from '../../components/ui/Icon';
+import { CameraCapture, cameraSupported } from '../../components/ui/CameraCapture';
 
 const MAX_BYTES = 5 * 1024 * 1024;
 const ACCEPTED = ['image/jpeg', 'image/png', 'image/webp'];
 
 /**
- * Optional reference photograph.
+ * Optional reference photograph, from a file or from the camera.
  *
  * Two rules are enforced here rather than left to the server:
  *   · the file is not uploaded until the consent box is ticked — consent before
  *     transmission, not after;
  *   · removing the photo deletes the stored asset as well as the local preview,
  *     so "remove" means removed rather than hidden.
+ *
+ * Both sources end at the same `handleFile`, so a photo taken on the spot is
+ * validated, sized and uploaded exactly like one picked off a disk. The camera
+ * opens in place of the chooser rather than over the page: at a stall, on a
+ * phone, a reader who taps "Take a photo" should not have to find their way
+ * back out of a modal.
  */
 export function PhotoStep({ answers, set, copy }) {
   const inputRef = useRef(null);
   const toast = useToast();
   const [dragging, setDragging] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [cameraOpen, setCameraOpen] = useState(false);
+
+  // Resolved once per mount: whether the browser can open a camera at all.
+  const [canUseCamera] = useState(cameraSupported);
 
   const handleFile = async (file) => {
-    if (!file) return;
+    if (!file) return false;
 
     if (!ACCEPTED.includes(file.type)) {
       toast('We cannot read that kind of file. Use a JPG, PNG or WebP picture.', { tone: 'error' });
-      return;
+      return false;
     }
     if (file.size > MAX_BYTES) {
       toast('That picture is bigger than 5 MB. Try a smaller one.', { tone: 'error' });
-      return;
+      return false;
     }
     if (!answers.photoConsent) {
       toast('Tick the box above before you add a photo.', { tone: 'error' });
-      return;
+      return false;
     }
 
     setUploading(true);
@@ -50,8 +61,10 @@ export function PhotoStep({ answers, set, copy }) {
         photoName: file.name,
       });
       toast('Got your photo. We only use it to draw your picture.', { tone: 'success' });
+      return true;
     } catch (error) {
       toast(error.message || 'That did not upload. Please try again.', { tone: 'error' });
+      return false;
     } finally {
       setUploading(false);
     }
@@ -119,20 +132,23 @@ export function PhotoStep({ answers, set, copy }) {
                   Remove
                 </Button>
               </div>
+            ) : cameraOpen ? (
+              <div style={{ marginTop: 'var(--space-4)' }}>
+                <CameraCapture
+                  busy={uploading}
+                  onCancel={() => setCameraOpen(false)}
+                  onCapture={async (file) => {
+                    // The card only closes once the photo is actually stored.
+                    // Closing on the tick and failing afterwards would drop the
+                    // reader back on an empty chooser with no idea why.
+                    if (await handleFile(file)) setCameraOpen(false);
+                  }}
+                />
+              </div>
             ) : (
               <div
-                className="photo-drop"
+                className="photo-choice"
                 data-dragging={dragging}
-                role="button"
-                tabIndex={0}
-                style={{ marginTop: 'var(--space-4)' }}
-                onClick={() => inputRef.current?.click()}
-                onKeyDown={(event) => {
-                  if (event.key === 'Enter' || event.key === ' ') {
-                    event.preventDefault();
-                    inputRef.current?.click();
-                  }
-                }}
                 onDragOver={(event) => {
                   event.preventDefault();
                   setDragging(true);
@@ -144,13 +160,44 @@ export function PhotoStep({ answers, set, copy }) {
                   handleFile(event.dataTransfer.files?.[0]);
                 }}
               >
-                <Icon name="upload" size={24} style={{ color: 'var(--accent)' }} />
-                <p style={{ fontWeight: 600 }}>
-                  {uploading ? 'Uploading…' : 'Drop a photo here, or pick a file'}
-                </p>
-                <p style={{ color: 'var(--ink-muted)', fontSize: '0.84rem' }}>
+                <button
+                  type="button"
+                  className="photo-option"
+                  onClick={() => inputRef.current?.click()}
+                  disabled={uploading}
+                >
+                  <span className="photo-option__mark">
+                    <Icon name="upload" size={20} />
+                  </span>
+                  <span className="photo-option__label">
+                    {uploading ? 'Uploading…' : 'Choose a photo'}
+                  </span>
+                  <span className="photo-option__hint">
+                    From your files. You can also drop one here.
+                  </span>
+                </button>
+
+                {canUseCamera ? (
+                  <button
+                    type="button"
+                    className="photo-option"
+                    onClick={() => setCameraOpen(true)}
+                    disabled={uploading}
+                  >
+                    <span className="photo-option__mark">
+                      <Icon name="capture" size={20} />
+                    </span>
+                    <span className="photo-option__label">Take a photo</span>
+                    <span className="photo-option__hint">
+                      Opens the camera here. Nothing is sent until you say so.
+                    </span>
+                  </button>
+                ) : null}
+
+                <p className="photo-choice__spec">
                   JPG, PNG or WebP · up to 5 MB · a clear photo of your face works best
                 </p>
+
                 <input
                   ref={inputRef}
                   type="file"

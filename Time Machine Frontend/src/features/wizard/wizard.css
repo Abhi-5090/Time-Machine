@@ -174,26 +174,265 @@
 
 /* ── Photo step ─────────────────────────────────────────────────────────── */
 
-.photo-drop {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
+/* ── Photo: pick a file, or take one ───────────────────────────────────────
+   Two ways in, side by side and weighted the same. Neither is the fallback:
+   at a stall most people have no file to pick and will use the camera, while
+   at a desk the reverse is true.                                           */
+
+.photo-choice {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
   gap: var(--space-3);
-  padding: var(--space-7) var(--space-5);
+  padding: var(--space-4);
   border: 1px dashed var(--rule-strong);
   border-radius: var(--radius-md);
   background: var(--surface-sunken);
-  text-align: center;
-  cursor: pointer;
   transition:
     border-color var(--dur-fast) var(--ease-soft),
     background-color var(--dur-fast) var(--ease-soft);
 }
 
-.photo-drop[data-dragging='true'] {
+.photo-choice[data-dragging='true'] {
   border-color: var(--accent);
   background: var(--accent-soft);
+}
+
+.photo-choice__spec {
+  grid-column: 1 / -1;
+  margin: 0;
+  text-align: center;
+  font-size: 0.82rem;
+  color: var(--ink-muted);
+}
+
+.photo-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-5) var(--space-4);
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  text-align: center;
+  cursor: pointer;
+  transition:
+    transform var(--dur-press) var(--ease-out),
+    border-color var(--dur-fast) var(--ease-soft),
+    background-color var(--dur-fast) var(--ease-soft);
+}
+
+.photo-option:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.photo-option:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .photo-option:hover:not(:disabled) {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+}
+
+.photo-option__mark {
+  display: grid;
+  place-items: center;
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: var(--accent-soft);
+  color: var(--accent);
+}
+
+.photo-option__label {
+  font-weight: 600;
+}
+
+.photo-option__hint {
+  font-size: 0.8rem;
+  line-height: 1.5;
+  color: var(--ink-muted);
+}
+
+/* ── The camera card ───────────────────────────────────────────────────────
+   Opens where the chooser was, at the top of the photo area, so the page does
+   not move under the reader and there is no modal to escape from.          */
+
+.camera-card {
+  /* Narrow and centred. This is a viewfinder for one face, not a banner, and
+     a full-width frame on a desktop is mostly room behind the reader. */
+  max-width: 420px;
+  margin-inline: auto;
+  border: 1px solid var(--rule-strong);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  overflow: hidden;
+}
+
+.camera-card__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding: var(--space-3) var(--space-4);
+  border-bottom: 1px solid var(--rule);
+}
+
+.camera-card__title {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin: 0;
+  font-family: var(--font-label);
+  font-size: 0.74rem;
+  letter-spacing: var(--tracking-label);
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.camera-card__dismiss {
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border: 1px solid transparent;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  color: var(--ink-muted);
+  cursor: pointer;
+  transition:
+    transform var(--dur-press) var(--ease-out),
+    color var(--dur-fast) var(--ease-soft),
+    border-color var(--dur-fast) var(--ease-soft);
+}
+
+.camera-card__dismiss:active {
+  transform: scale(0.97);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .camera-card__dismiss:hover {
+    color: var(--ink);
+    border-color: var(--rule-strong);
+  }
+}
+
+.camera-stage {
+  position: relative;
+  display: grid;
+  place-items: center;
+  /* Portrait, like the picture it feeds and like a held phone. The height is
+     set directly rather than through `aspect-ratio` plus `max-height`: that
+     pair makes the browser shrink the *width* to keep the ratio, which leaves
+     the frame floating in a gutter inside its own card. Clamped so a short
+     landscape window still gets a usable viewfinder. */
+  height: clamp(280px, 52vh, 560px);
+  background: #0c0c10;
+  overflow: hidden;
+}
+
+.camera-stage__video,
+.camera-stage__shot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* The front camera is a mirror while you frame the shot, and the captured
+   file is mirrored to match, so the picture you tick is the one you saw. */
+.camera-stage__video[data-mirrored='true'] {
+  transform: scaleX(-1);
+}
+
+.camera-stage__video[data-hidden] {
+  visibility: hidden;
+}
+
+.camera-stage__note {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-3);
+  max-width: 34ch;
+  padding: var(--space-5);
+  text-align: center;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: rgba(255, 255, 255, 0.78);
+}
+
+.camera-stage__note--error {
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.camera-stage__note--error svg {
+  color: var(--color-danger);
+}
+
+.camera-stage__note p {
+  margin: 0;
+}
+
+.camera-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: var(--space-3);
+  padding: var(--space-4);
+}
+
+/* The shutter. Round, central and bigger than anything near it, because it is
+   the only thing on this card most people will ever press. */
+.camera-shutter {
+  position: relative;
+  display: grid;
+  place-items: center;
+  width: 62px;
+  height: 62px;
+  padding: 0;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  cursor: pointer;
+  transition: transform var(--dur-press) var(--ease-out);
+}
+
+.camera-shutter:active:not(:disabled) {
+  transform: scale(0.94);
+}
+
+.camera-shutter:disabled {
+  opacity: 0.45;
+  cursor: progress;
+}
+
+.camera-shutter__ring {
+  position: absolute;
+  inset: 0;
+  border: 2px solid var(--accent);
+  border-radius: 50%;
+}
+
+.camera-shutter__dot {
+  width: 46px;
+  height: 46px;
+  border-radius: 50%;
+  background: var(--accent);
+  transition: background-color var(--dur-fast) var(--ease-soft);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .camera-shutter:hover:not(:disabled) .camera-shutter__dot {
+    background: color-mix(in srgb, var(--accent) 85%, var(--ink));
+  }
 }
 
 .photo-preview {

@@ -64,6 +64,20 @@
   background: var(--accent);
   color: var(--accent-contrast);
   border-color: var(--accent);
+  /* A soft lift in the button's own colour. The primary action should be the
+     thing the eye lands on before anyone has read a single label, and on the
+     past palette — matte sienna on paper — flat fill alone does not carry
+     that. This is a shadow, not a glow: 2050 keeps its neon ring below. */
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.1),
+    0 10px 24px -12px color-mix(in srgb, var(--accent) 70%, transparent);
+}
+
+/* The one big call to action on a page gets a little more of the same. */
+.btn-lg.btn-primary {
+  box-shadow:
+    0 1px 2px rgba(0, 0, 0, 0.1),
+    0 16px 36px -14px color-mix(in srgb, var(--accent) 80%, transparent);
 }
 
 /* Secondary — bordered, transparent */
@@ -91,6 +105,9 @@
 @media (hover: hover) and (pointer: fine) {
   .btn-primary:hover:not(:disabled) {
     background: color-mix(in srgb, var(--accent) 88%, var(--ink));
+    box-shadow:
+      0 1px 2px rgba(0, 0, 0, 0.12),
+      0 18px 40px -14px color-mix(in srgb, var(--accent) 85%, transparent);
   }
 
   .btn-secondary:hover:not(:disabled) {

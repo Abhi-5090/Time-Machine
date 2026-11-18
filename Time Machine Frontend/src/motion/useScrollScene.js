@@ -50,18 +50,33 @@ export function useScrollScene(setup, deps = []) {
  * The standard treatment for a full-height hero: as the reader scrolls past it,
  * the content drifts up a little slower than the page and dims, so the section
  * below arrives over it rather than merely after it.
+ *
+ * The trigger is the hero *section*, never the piece that moves inside it.
+ * That distinction is the whole reason this function takes a `trigger` at all:
+ * a selector matching a thin element — a masthead rule, say — gives
+ * ScrollTrigger a range only as tall as that strip, and the entire recede then
+ * plays out in the first eighty pixels of scroll. The call to action is gone
+ * before the reader has decided to leave, which reads as a flicker rather than
+ * as a hero receding.
+ *
+ * The floor is 0.25 rather than near-zero for the same reason: the hero should
+ * sink behind what follows, not blink out of existence while it is still the
+ * largest thing on screen.
  */
-export function heroRecede(selector, { distance = -90, scale = 0.96 } = {}) {
+export function heroRecede(selector, { distance = -90, scale = 0.96, opacity = 0.25, trigger } = {}) {
   const target = gsap.utils.toArray(selector);
   if (!target.length) return null;
+
+  const explicit = typeof trigger === 'string' ? document.querySelector(trigger) : trigger;
+  const scrollTrigger = explicit || target[0].closest('section') || target[0];
 
   return gsap.to(target, {
     y: distance,
     scale,
-    opacity: 0.1,
+    opacity,
     ease: 'none',
     scrollTrigger: {
-      trigger: target[0],
+      trigger: scrollTrigger,
       start: 'top top',
       end: 'bottom top',
       scrub: 0.6,
