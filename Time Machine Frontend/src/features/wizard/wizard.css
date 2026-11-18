@@ -180,8 +180,13 @@
    at a desk the reverse is true.                                           */
 
 .photo-choice {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 210px), 1fr));
+  /* Flex, not `grid` with `auto-fit`: auto-fit lays out as many tracks as
+     will fit, so at this width it built three columns for two tiles and left
+     a third of the box empty on the right. Here the tiles divide whatever
+     width there is between them, and a lone tile — on a browser with no
+     camera — takes the lot rather than sitting in half a row. */
+  display: flex;
+  flex-wrap: wrap;
   gap: var(--space-3);
   padding: var(--space-4);
   border: 1px dashed var(--rule-strong);
@@ -198,7 +203,7 @@
 }
 
 .photo-choice__spec {
-  grid-column: 1 / -1;
+  flex: 1 0 100%;
   margin: 0;
   text-align: center;
   font-size: 0.82rem;
@@ -206,6 +211,8 @@
 }
 
 .photo-option {
+  /* Equal shares of the row, wrapping to one per row below ~440px. */
+  flex: 1 1 210px;
   display: flex;
   flex-direction: column;
   align-items: center;
