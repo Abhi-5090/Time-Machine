@@ -107,3 +107,50 @@ export async function exportSheetAsPdf(node, name) {
   pdf.addImage(dataUrl, 'PNG', 0, 0, 210, 297, undefined, 'FAST');
   pdf.save(`${slugify(name)}-card.pdf`);
 }
+
+/* ── The QR code ───────────────────────────────────────────────────────────
+   A card is readable by anyone who has its address: the owner token is only
+   required to delete one or to redo its picture (see the API's auth
+   middleware). That is what makes this work at a stall — the code can carry
+   the plain address, a stranger's phone opens the card read-only, and nothing
+   that could destroy it travels in a QR code pointed at a crowd.           */
+
+/** The address of a finished card, as a phone should open it. */
+export function cardUrl(readingId, origin) {
+  const base = (origin || window.location.origin).replace(/\/+$/, '');
+  return `${base}/reading/${readingId}`;
+}
+
+/**
+ * Renders a URL as a QR code, returned as a PNG data URL.
+ *
+ * Black on white, always, rather than the timeline's ink on its paper. A
+ * scanner needs contrast between the modules and the quiet zone far more than
+ * this needs to match the page, and sienna-on-cream is exactly the kind of
+ * tasteful choice that fails under the bad lighting of a venue. The white
+ * tile it sits on is doing the matching instead.
+ *
+ * Rendered at 960px even though it displays at about 180: the same image is
+ * what gets saved, and a QR screenshotted off a phone and reprinted wants the
+ * resolution.
+ */
+export async function renderQrCode(url, { width = 960, margin = 2 } = {}) {
+  const module = await import('qrcode');
+  const toDataURL = module.toDataURL || module.default?.toDataURL;
+  if (!toDataURL) throw new Error('The QR code library could not be loaded.');
+
+  return toDataURL(url, {
+    width,
+    margin,
+    // 'M' recovers from ~15% damage, which covers a thumb-print on a phone
+    // screen without making the modules too fine to read at this size.
+    errorCorrectionLevel: 'M',
+    color: { dark: '#101010', light: '#ffffff' },
+  });
+}
+
+/** Saves the QR code itself, for printing or for keeping. */
+export function downloadQrCode(dataUrl, name) {
+  if (!dataUrl) throw new Error('The QR code is not ready yet.');
+  triggerDownload(dataUrl, `${slugify(name)}-scan-me.png`);
+}

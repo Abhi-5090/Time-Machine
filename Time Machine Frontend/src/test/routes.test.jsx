@@ -146,6 +146,19 @@ describe('Results', () => {
     await waitFor(() => expect(document.documentElement.getAttribute('data-timeline')).toBe('future'));
   });
 
+  // Both timelines, because a reader at the stall takes one card away either
+  // way and the way they take it is their phone.
+  it.each([
+    ['past', '/reading/rd_past', 'Your Past Life Report'],
+    ['2050', '/reading/rd_future', 'Your 2050 Report'],
+  ])('offers a QR code beside the %s card', async (_label, path, heading) => {
+    renderRoute(path);
+    await screen.findByText(heading);
+
+    expect(await screen.findByText(/scan for your card/i)).toBeInTheDocument();
+    expect(screen.getByRole('button', { name: /save qr code/i })).toBeInTheDocument();
+  });
+
   it('shows the drawn stand-in, and says so, when no photo was shared', async () => {
     renderRoute('/reading/rd_nophoto');
 

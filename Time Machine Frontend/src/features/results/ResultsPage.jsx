@@ -3,6 +3,7 @@ import { useParams, Link, Navigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import { PageShell } from '../../components/layout/PageShell';
 import { ActionBar } from '../../components/reading/ActionBar';
+import { ShareQr } from '../../components/reading/ShareQr';
 import { Skeleton } from '../../components/ui/primitives';
 import { useReading } from '../../lib/useReading';
 import { ReportCard } from './ReportCard';
@@ -113,7 +114,12 @@ export default function ResultsPage() {
           <ActionBar reading={reading} sheetRef={sheetRef} title={name} />
         </div>
 
-        <ReportCard reading={reading} ref={sheetRef} />
+        {/* The card and the way to carry it off, side by side. Both
+            timelines get this: the code is the same idea either way. */}
+        <div className="card-page__spread">
+          <ReportCard reading={reading} ref={sheetRef} />
+          <ShareQr readingId={reading.readingId} name={name} />
+        </div>
 
         <div className="card-page__more">
           <button

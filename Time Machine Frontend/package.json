@@ -20,6 +20,7 @@
     "html-to-image": "^1.11.11",
     "jspdf": "^4.2.1",
     "lottie-react": "^2.4.1",
+    "qrcode": "^1.5.4",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-router-dom": "^7.18.5"
@@ -35,7 +36,7 @@
     "vite": "^5.4.9",
     "vitest": "^2.1.3"
   },
-  "description": "Time Machine client \u2014 the portal, both wizards, and both reports",
+  "description": "Time Machine client — the portal, both wizards, and both reports",
   "engines": {
     "node": ">=20 <23"
   }
