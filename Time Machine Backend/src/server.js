@@ -2,6 +2,7 @@ import app from './app.js';
 import { config, validateConfig } from './config/env.js';
 import { connectDatabase, disconnectDatabase } from './config/database.js';
 import { checkProvider, getProviderHealth } from './services/providerHealth.js';
+import { startKeepAlive } from './services/keepAlive.js';
 
 async function bootstrap() {
   try {
@@ -26,9 +27,14 @@ async function bootstrap() {
       console.log(`======================================================\n`);
     });
 
-    // 4. Graceful shutdown handler
+    // 5. Keep a free instance from being spun down for being idle. Started
+    //    after listen() so the first ping has something to answer it.
+    const keepAlive = startKeepAlive();
+
+    // 6. Graceful shutdown handler
     const shutdown = async (signal) => {
       console.log(`\n[Server] Received ${signal}. Initiating graceful celestial shutdown...`);
+      keepAlive?.stop();
       server.close(async () => {
         await disconnectDatabase();
         console.log('[Server] Process closed cleanly. Blessed be the journey.');

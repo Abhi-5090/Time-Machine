@@ -25,3 +25,25 @@ export function getHealth(req, res) {
     requestId: req.id,
   });
 }
+
+/**
+ * The keep-alive target.
+ *
+ * Deliberately the cheapest endpoint in the service: no database round trip,
+ * no provider check, nothing that can fail. It exists to be inbound traffic
+ * every five minutes so a free instance is never idle long enough to be spun
+ * down — see services/keepAlive.js. `/health` would also serve, but it reads
+ * the database and provider state, and that is not work worth doing 288 times
+ * a day to prove the process is running.
+ */
+export function getPing(req, res) {
+  res.status(200).json({
+    success: true,
+    data: {
+      status: 'awake',
+      uptimeSeconds: Math.round(process.uptime()),
+      timestamp: new Date().toISOString(),
+    },
+    requestId: req.id,
+  });
+}

@@ -7,6 +7,7 @@ import { globalLimiter } from './middleware/rateLimiter.js';
 import { errorHandler, notFoundHandler } from './middleware/errorHandler.js';
 
 import healthRoutes from './routes/health.routes.js';
+import pingRoutes from './routes/ping.routes.js';
 import zodiacRoutes from './routes/zodiac.routes.js';
 import readingRoutes from './routes/reading.routes.js';
 import portraitRoutes from './routes/portrait.routes.js';
@@ -67,6 +68,8 @@ app.use(express.urlencoded({ extended: true, limit: '2mb' }));
 // Mount API routes
 const apiBase = config.API_BASE_PATH; // /api/v1
 app.use(`${apiBase}/health`, healthRoutes);
+// The keep-alive target. Cheap on purpose: see controllers/health.controller.js.
+app.use(`${apiBase}/ping`, pingRoutes);
 app.use(`${apiBase}/catalog`, catalogRoutes);
 app.use(`${apiBase}/zodiac`, zodiacRoutes);
 app.use(`${apiBase}/readings`, readingRoutes);

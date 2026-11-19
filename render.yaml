@@ -33,6 +33,12 @@ services:
 
       - key: READING_RETENTION_DAYS
         value: "30"
+
+      # Keep-alive. A free instance is spun down after 15 minutes idle, so the
+      # service pings its own public URL every five minutes to stay awake.
+      # Nothing to set: Render provides RENDER_EXTERNAL_URL. Override the rate
+      # with KEEP_ALIVE_INTERVAL_MS, or the target with KEEP_ALIVE_URL, only if
+      # you need to. See DEPLOY.md for what this does not cover.
       # Set these in the dashboard — never commit them.
       - key: OPENAI_API_KEY
         sync: false

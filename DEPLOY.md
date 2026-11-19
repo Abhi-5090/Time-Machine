@@ -112,9 +112,26 @@ why the rewrite is the default.
 
 ## Things that will bite you
 
-**The free Render instance sleeps.** After ~15 minutes idle the first request takes
-30–60s to wake the service, on top of the ~40s generation. Before a demo, open the
-health URL once to wake it. For an expo, the paid instance type is worth it.
+**The free Render instance sleeps — now mostly handled.** Render spins a free web
+service down after ~15 minutes with no inbound traffic, and waking it takes 30–60s
+on top of the ~40s generation. That cold start is what shows up in a browser as a
+502.
+
+The API now pings its own public URL every five minutes (`GET /api/v1/ping`, see
+`src/services/keepAlive.js`), which counts as inbound traffic and keeps a running
+instance awake. It needs no configuration: Render sets `RENDER_EXTERNAL_URL` itself.
+Two optional overrides exist — `KEEP_ALIVE_URL` for a custom domain or another host,
+and `KEEP_ALIVE_INTERVAL_MS` to change the rate without a deploy.
+
+What it cannot do is wake a service that is *already* asleep — nothing is running to
+send the ping. So after a restart, a failed deploy, or any gap, the next visitor
+still pays the cold start. If you want it awake unconditionally, point an outside
+pinger (cron-job.org, UptimeRobot) at the same `/api/v1/ping` URL every 10 minutes,
+or move to a paid instance. Before a demo, it is still worth opening the health URL
+once.
+
+Note the free plan's 750 instance-hours per month: a service kept awake around the
+clock uses ~730 of them, so one service fits and two do not.
 
 **Generation takes 35–60 seconds.** That is normal for this image model. The reveal
 screen polls and narrates real server stages throughout.
